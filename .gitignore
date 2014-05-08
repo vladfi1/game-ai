@@ -1,0 +1,7 @@
+# ghc files
+*.o
+*.hi
+
+# experiments
+Test
+*.prof
