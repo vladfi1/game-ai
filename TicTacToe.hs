@@ -51,10 +51,10 @@ wins player board =
 
 loses player board = wins (other player) board
 
-score board player = 
-  if player `wins` board then 1.0
-  else if player `loses` board then 0.0
-  else 0.5
+score board player
+  | player `wins` board  = 1.0
+  | player `loses` board = 0.0
+  | otherwise            = 0.5
 
 play loc (player, board) = (other player, Map.insert loc player board)
 

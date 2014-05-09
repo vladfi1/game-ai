@@ -13,8 +13,10 @@ iterateN n f a =
   if (n == 0) then a else
     iterateN (n-1) f (f a)
 
+range len = [0..len-1]
+
 enumerate :: [a] -> [(Int, a)]
-enumerate list = zip [0 .. (length list) - 1] list
+enumerate list = zip (range $ length list) list
 
 listToIntMap :: [a] -> IntMap a
 listToIntMap list = fromList (enumerate list)

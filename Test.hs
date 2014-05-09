@@ -1,7 +1,17 @@
 import UCT
 import Game
 import TicTacToe
+import qualified Data.IntMap as IntMap
 
-uctPlayer n m = uct n (playOutEval (lookAheadPlayDepth m evaluate))
+n = 100
+m = 3
 
-main = putStrLn $ unlines $ map showBoard (playOut (uctPlayer 50 1) newGame)
+strat = uct n (playOutEval (lookAheadPlayDepth m evaluate))
+player = state . bestChild . strat
+
+game = playOut player newGame
+nodes = map strat game
+
+inspect node = map (($ agent node) . value) (IntMap.elems $ children node)
+
+main = putStrLn $ unlines $ map showBoard game
