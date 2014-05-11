@@ -45,9 +45,8 @@ diagonal1 = [(x, y) | x <- range, let y = x]
 diagonal2 = [(x, y) | x <- range, let y = size + 1 - x]
 winsets = vertical ++ horizontal ++ [diagonal1, diagonal2]
 
-wins player board =
-  let good square = Map.lookup square board == Just player in
-  any (all good) winsets
+wins player board = any (all good) winsets
+  where good square = Map.lookup square board == Just player
 
 loses player board = wins (other player) board
 
