@@ -1,10 +1,10 @@
 import UCT
 import Game
-import TicTacToe
+import Connect4
 import qualified Data.IntMap as IntMap
 
-n = 100
-m = 3
+n = 50
+m = 1
 
 strat = uct n (playOutEval (lookAheadPlayDepth m evaluate))
 player = state . bestChild . strat
