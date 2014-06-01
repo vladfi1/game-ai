@@ -8,7 +8,7 @@ import qualified Data.Map as Map
 
 import Data.Array ((!))
 
-import Game (Game, terminal, actions, evaluate)
+import Game (Game, agent, terminal, actions, evaluate)
 
 import Utils (allValues, arrayFromList)
 
@@ -57,7 +57,9 @@ score board player
 
 play loc (player, board) = (other player, Map.insert loc player board)
 
-instance Game Player TicTacToeBoard where
+instance Game Player (Player, TicTacToeBoard) where
+  agent = fst  
+  
   terminal (player, board) = player `loses` board || Map.size board == size * size
   
   actions (player, board) =

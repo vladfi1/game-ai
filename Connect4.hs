@@ -12,7 +12,7 @@ import qualified Data.IntMap as IntMap
 import Data.Array (Array, (!), (//))
 import Data.Maybe (catMaybes, isJust)
 
-import Game (Game, terminal, actions, evaluate)
+import Game (Game, agent, terminal, actions, evaluate)
 
 import Utils (allValues, arrayFromList, range, listToIntMap, enumerate)
 import qualified Utils
@@ -87,7 +87,9 @@ score board player =
     Just p  -> if p == player then 1.0 else 0.0
     Nothing -> 0.5
 
-instance Game Player Connect4Board where
+instance Game Player (Player, Connect4Board) where
+  agent = fst
+
   terminal (player, board) = (isJust $ winner board) || Map.size (squares board) == width * height
   
   actions (player, board) = catMaybes [dropCol x (player, board) | x <- xrange]
