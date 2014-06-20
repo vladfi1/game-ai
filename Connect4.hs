@@ -29,6 +29,7 @@ other O = X
 
 data Connect4Board =
   Connect4Board {
+    player  :: Player,
     squares :: Map (Int, Int) Player,
     stats   :: IntMap (Array Int Int),
     winner  :: Maybe Player
@@ -51,50 +52,52 @@ inverseWinSets = Map.fromList $ Utils.invert (enumerate winsets)
 
 emptyStat = arrayFromList $ map (const 0) allPlayers
 
-newGame = (,) X
-  Connect4Board {
-    squares = Map.empty,
-    stats   = listToIntMap $ map (const emptyStat) winsets,
-    winner  = Nothing
-  }
+newGame = Connect4Board {
+  player  = X,
+  squares = Map.empty,
+  stats   = listToIntMap $ map (const emptyStat) winsets,
+  winner  = Nothing
+}
 
 update :: Player -> Array Int Int -> Array Int Int
 update player stat = stat // [(i, (stat ! i + 1))] where i = fromEnum player
 
 wins player stat = stat ! (fromEnum player) == connect
 
-play loc (player, board) = (,) (other player)
-  Connect4Board {
-    squares = Map.insert loc player (squares board),
+play loc board =
+  let
+    previous = player board
+    newStats = foldr (IntMap.adjust (update previous)) (stats board) (inverseWinSets Map.! loc)
+  in Connect4Board {
+    player  = other previous,
+    squares = Map.insert loc previous (squares board),
     stats   = newStats,
-    winner  = if any (wins player) [newStats IntMap.! winset | winset <- inverseWinSets Map.! loc]
-                then Just player else Nothing
+    winner  = if any (wins previous) [newStats IntMap.! winset | winset <- inverseWinSets Map.! loc]
+                then Just previous else Nothing
   }
-  where newStats = foldr (IntMap.adjust (update player)) (stats board) (inverseWinSets Map.! loc)
-    
 
 dropLoc (x,y) squares
   | y == height                 = Nothing
   | Map.notMember (x,y) squares = Just (x, y)
   | otherwise                   = dropLoc (x, y+1) squares
 
-dropCol x (player, board) = do
+dropCol x board = do
   loc <- dropLoc (x, 0) (squares board)
-  return (play loc (player, board))
+  return (play loc board)
 
 score board player = 
   case winner board of
     Just p  -> if p == player then 1.0 else 0.0
     Nothing -> 0.5
 
-instance Game Player (Player, Connect4Board) where
-  agent = fst
+instance Game Player Connect4Board where
+  agent = player
 
-  terminal (player, board) = (isJust $ winner board) || Map.size (squares board) == width * height
+  terminal board = (isJust $ winner board) || Map.size (squares board) == width * height
   
-  actions (player, board) = catMaybes [dropCol x (player, board) | x <- xrange]
+  actions board = catMaybes [dropCol x board | x <- xrange]
   
-  evaluate (_, board) =
+  evaluate board =
     let cache = arrayFromList $ map (score board) allPlayers in
       \player -> cache ! (fromEnum player)
 
@@ -104,7 +107,8 @@ showSquare (Just player) = show player
 
 getSquare loc board = Map.lookup loc (squares board)
 
-showBoard (player, board) =
-  unlines [concat [showSquare (getSquare (x, y) board) | x <- xrange] | y <- reverse yrange] ++
-  "Player " ++ (show player) ++ " to move."
+instance Show Connect4Board where
+  show board =
+    unlines [concat [showSquare (getSquare (x, y) board) | x <- xrange] | y <- reverse yrange] ++
+    "Player " ++ (show $ player board) ++ " to move."
 

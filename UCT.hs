@@ -41,7 +41,7 @@ explore node
   | Game.terminal (state node) = node
   | (visits node) == 1 = node {visits = 2, value = value (bestChild node)}
   | otherwise = node {visits = visits node + 1, value = newValue, children = newChildren}
-      where  
+      where
         (index, toExplore) = maximumByKey
           (\(_, child) -> sqrt (2 * log (visits node) / visits child) + (value child) (agent node))
           (IntMap.assocs $ children node)
