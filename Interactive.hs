@@ -2,7 +2,7 @@ module Interactive where
 
 import Connect4 (Connect4Board, winner)
 import qualified Connect4
-import Game (Game, terminal, actions)
+import Game (Game, Heuristic, terminal, actions)
 import qualified Game
 import qualified UCT
 
@@ -19,10 +19,12 @@ humanPlayer board = do
   let index = read line
   return $ (actions board) !! index
 
-n = 500
-m = 2
+n = 2000
+m = 1
 
-heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
+--heuristic :: Heuristic Connect4.Player Connect4.Connect4Board
+--heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
+heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
 cpuPlayer :: Player Connect4Board
 cpuPlayer = return . (UCT.uctPlayer n heuristic)

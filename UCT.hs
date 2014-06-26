@@ -39,7 +39,7 @@ initNode heuristic state =
 explore :: Game a b => Node a b -> Node a b
 explore node
   | Game.terminal (state node) = node
-  | (visits node) == 1 = node {visits = 2, value = value (bestChild node)}
+  | (visits node) == 1 = node {visits = 2, value = value $ explore (bestChild node)}
   | otherwise = node {visits = visits node + 1, value = newValue, children = newChildren}
       where
         (index, toExplore) = maximumByKey

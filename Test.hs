@@ -10,7 +10,8 @@ main = putStrLn $ unlines $ map show game
 n = 2000
 m = 1
 
-strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
+--strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
+strat = uct n (Game.lookAheadEvalDepth m Game.evaluate)
 play = state . bestChild . strat
 
 game = Game.playOut play newGame
