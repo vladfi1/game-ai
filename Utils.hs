@@ -2,7 +2,8 @@ module Utils where
 
 import Data.List (maximumBy)
 import Data.Ord (comparing)
-import Data.Array (Array, array)
+import Data.Vector (Vector)
+import qualified Data.Vector as Vector
 
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
@@ -26,14 +27,21 @@ enumerate list = zip (range $ length list) list
 listToIntMap :: [a] -> IntMap a
 listToIntMap list = IntMap.fromList (enumerate list)
 
-arrayFromList :: [a] -> Array Int a
-arrayFromList list = array (0, (length list) - 1) (enumerate list)
-
 allValues :: (Bounded a, Enum a) => [a]
 allValues = [minBound .. ]
+
+toVector :: (Bounded a, Enum a) => (a -> b) -> Vector b
+toVector f = Vector.fromList $ map f allValues
+
+fromVector :: (Bounded a, Enum a) => Vector b -> a -> b
+fromVector v = (v Vector.!) . fromEnum
+
+mem :: (Bounded a, Enum a) => (a -> b) -> (a -> b)
+mem = fromVector . toVector
 
 invert :: (Ord b) => [(a, [b])] -> [(b, [a])]
 invert packed =
   let unpacked = concat [[(a, b) | b <- bs] | (a, bs) <- packed]
       bToAs = foldl (\m (a, b) -> Map.insert b (a : Map.findWithDefault [] b m) m) Map.empty unpacked
     in Map.assocs bToAs
+

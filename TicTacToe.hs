@@ -6,11 +6,11 @@ module TicTacToe where
 import Data.Map (Map)
 import qualified Data.Map as Map
 
-import Data.Array ((!))
+import Data.Vector ((!))
 
 import Game (Game, agent, terminal, actions, evaluate)
 
-import Utils (allValues, arrayFromList)
+import Utils (allValues, mem)
 
 data Player = X | O
   deriving (Show, Eq, Ord, Enum, Bounded)
@@ -65,7 +65,5 @@ instance Game Player (Player, TicTacToeBoard) where
   actions (player, board) =
     [play loc (player, board) | loc <- squares, Map.notMember loc board]
   
-  evaluate (_, board) =
-    let cache = arrayFromList $ map (score board) allPlayers in
-      \player -> cache ! (fromEnum player)
+  evaluate (_, board) = mem (score board)
 
