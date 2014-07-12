@@ -11,7 +11,6 @@ import Control.Monad.State
 
 type Player s = s -> IO s
 
-humanPlayer :: Player Connect4Board
 humanPlayer board = do
   putStrLn $ show board
   putStrLn "Enter a number: "
@@ -22,15 +21,16 @@ humanPlayer board = do
 n = 2000
 m = 1
 
---heuristic :: Heuristic Connect4.Player Connect4.Connect4Board
 --heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
 heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
-cpuPlayer :: Player Connect4Board
-cpuPlayer = return . (UCT.uctPlayer n heuristic)
+cpuPlayer board = do
+  let node = UCT.bestChild $ UCT.uct n heuristic board
+  putStrLn $ show $ (UCT.value node) (Game.agent board)
+  return $ UCT.state node
 
 players :: Map.Map Connect4.Player (Player Connect4Board)
-players = Map.fromList [(Connect4.X, humanPlayer), (Connect4.O, cpuPlayer)]
+players = Map.fromList [(Connect4.O, humanPlayer), (Connect4.X, cpuPlayer)]
 
 move :: StateT Connect4Board IO ()
 move = do
