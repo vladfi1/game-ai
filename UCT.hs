@@ -47,7 +47,7 @@ explore node
           (IntMap.assocs $ children node)
         explored = explore toExplore
         newChildren = IntMap.insert index explored (children node)
-        newValue = maximumByKey ($ agent node) (map value (IntMap.elems newChildren))
+        newValue = maximumByKey ($ agent node) [value node, value explored]
 
 verify :: Game a s => Node a s -> Maybe (Node a s)
 verify node =
