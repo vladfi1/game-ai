@@ -9,7 +9,10 @@ import qualified Data.Map as Map
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 
+
 import Data.Vector (Vector, (!), (//))
+import qualified Data.Vector as Vector
+
 import Data.Maybe (catMaybes, isJust)
 
 import Game (Game, agent, terminal, actions, evaluate)
@@ -29,7 +32,10 @@ other O = X
 
 type Square = (Int, Int)
 type WinSet = Int
-type Stat = Player -> Int
+type Stat = Vector Int
+
+getStat :: Player -> Stat -> Int
+getStat player stat = stat ! (fromEnum player)
 
 data Connect4Board =
   Connect4Board {
@@ -54,7 +60,7 @@ winsets = concat [vertical, horizontal, diagonal1, diagonal2] :: [[Square]]
 inverseWinSets :: Map Square [WinSet]
 inverseWinSets = Map.fromList $ Utils.invert (enumerate winsets)
 
-emptyStat = const 0
+emptyStat = Vector.fromList [0 | _ <- allPlayers]
 
 newGame = Connect4Board {
   player  = X,
@@ -63,24 +69,28 @@ newGame = Connect4Board {
   winner  = Nothing
 }
 
-update :: Player -> Stat -> Stat
+isNil :: Stat -> Bool
+isNil = Vector.all (> 0)
+
+--update :: Player -> Stat -> Stat
 update player stat =
-  fromVector $ v // [(i, 1 + stat player)]
+  let newStat = stat // [(i, 1 + stat ! i)] in
+  if isNil newStat then Nothing else
+    Just newStat
   where
     i = fromEnum player
-    v = toVector stat
 
-wins player stat = stat player == connect
+wins player stat = getStat player stat == connect
 
 play loc board =
   let
     previous = player board
-    newStats = foldr (Map.adjust (update previous)) (stats board) (inverseWinSets Map.! loc)
+    newStats = foldr (Map.update (update previous)) (stats board) (inverseWinSets Map.! loc)
   in Connect4Board {
     player  = other previous,
     squares = Map.insert loc previous (squares board),
     stats   = newStats,
-    winner  = if any (wins previous) [newStats Map.! winset | winset <- inverseWinSets Map.! loc]
+    winner  = if any (wins previous) (catMaybes [Map.lookup winset newStats | winset <- inverseWinSets Map.! loc])
                 then Just previous else Nothing
   }
 
