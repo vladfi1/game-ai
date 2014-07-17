@@ -5,8 +5,6 @@ import qualified Game
 import Connect4 (newGame)
 import qualified Data.IntMap as IntMap
 
-main = putStrLn $ unlines $ map show game
-
 n = 2000
 m = 1
 
@@ -17,5 +15,10 @@ play = state . bestChild . strat
 game = Game.playOut play newGame
 nodes = map strat game
 
-inspect node = map (($ agent node) . value) (IntMap.elems $ children node)
+inspect node = do
+  print $ state $ node
+  print $ map (($ agent node) . value) (IntMap.elems $ children node)
+  print $ map visits (IntMap.elems $ children node)
+
+main = sequence $ map inspect nodes
 
