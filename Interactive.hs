@@ -18,7 +18,7 @@ humanPlayer board = do
   let index = read line
   return $ (actions board) !! index
 
-n = 2000
+n = 3000
 m = 1
 
 --heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
