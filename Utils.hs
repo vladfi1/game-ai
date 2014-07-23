@@ -11,6 +11,10 @@ import qualified Data.IntMap as IntMap
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+import qualified Numeric
+
+decimals n f = Numeric.showFFloat (Just n) f ""
+
 maximumByKey :: Ord b => (a -> b) -> [a] -> a
 maximumByKey key = maximumBy (comparing key)
 

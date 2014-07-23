@@ -18,7 +18,7 @@ humanPlayer board = do
   let index = read line
   return $ (actions board) !! index
 
-n = 3000
+n = 2000
 m = 1
 
 --heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
@@ -26,7 +26,7 @@ heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
 cpuPlayer board = do
   let node = UCT.bestChild $ UCT.uct n heuristic board
-  putStrLn $ show $ (UCT.value node) (Game.agent board)
+  putStrLn $ show $ (UCT.getValue node) (Game.agent board)
   return $ UCT.state node
 
 players :: Map.Map Connect4.Player (Player Connect4Board)

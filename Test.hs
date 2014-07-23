@@ -1,12 +1,13 @@
 module Test where
 
 import qualified UCT
-import UCT (uct, agent, value, children, visits)
+import UCT (uct, agent, getValue, children, visits)
 import qualified Game
 import Connect4 (newGame)
 import qualified Data.IntMap as IntMap
+import qualified Utils
 
-n = 10000
+n = 2000
 m = 1
 
 --strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
@@ -21,7 +22,7 @@ nodes = map snd game
 
 inspect node = do
   print $ UCT.state node
-  print $ map (($ agent node) . value) (IntMap.elems $ children node)
+  print $ map ((Utils.decimals 2) . ($ agent node) . getValue) (IntMap.elems $ children node)
   print $ map visits (IntMap.elems $ children node)
 
 main = sequence $ map inspect nodes
