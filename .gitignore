@@ -5,3 +5,8 @@
 # experiments
 Test
 *.prof
+
+# cabal
+.cabal-sandbox/
+dist/
+cabal.sandbox.config
