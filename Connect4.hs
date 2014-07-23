@@ -115,7 +115,7 @@ instance Game Player Connect4Board where
   
   actions board = catMaybes [dropCol x board | x <- xrange]
   
-  evaluate board = mem (score board)
+  evaluate = score
 
 showSquare :: Maybe Player -> String
 showSquare Nothing = " "
