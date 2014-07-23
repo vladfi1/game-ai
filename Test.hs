@@ -1,22 +1,26 @@
 module Test where
 
-import UCT
+import qualified UCT
+import UCT (uct, agent, value, children, visits)
 import qualified Game
 import Connect4 (newGame)
 import qualified Data.IntMap as IntMap
 
-n = 2000
+n = 10000
 m = 1
 
 --strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
 strat = uct n (Game.lookAheadEvalDepth m Game.evaluate)
-play = state . bestChild . strat
+play state = 
+  let node = strat state in
+  (state, node) : if Game.terminal state then []
+    else play (UCT.state $ UCT.bestChild node)
 
-game = Game.playOut play newGame
-nodes = map strat game
+game = play newGame
+nodes = map snd game
 
 inspect node = do
-  print $ state $ node
+  print $ UCT.state node
   print $ map (($ agent node) . value) (IntMap.elems $ children node)
   print $ map visits (IntMap.elems $ children node)
 
