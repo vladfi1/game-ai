@@ -44,19 +44,21 @@ pickChild node = maximumByKey
   (IntMap.assocs $ children node)
 
 explore node
-  | Game.terminal (state node) = node
+  | Game.terminal (state node) = let
+      newVisits = visits node + 1
+      newValue = Vector.map (\v -> v / visits node * newVisits) (value node)
+      in node {visits = newVisits, value = newValue}
 --  | (visits node) == 1 = node {visits = 2, value = value $ explore (bestChild node)}
-  | otherwise = node {visits = newVisits, value = newValue, children = newChildren}
-      where
-        (index, toExplore) = pickChild node
-        explored = explore toExplore
-        newChildren = IntMap.insert index explored (children node)
-        listNewChildren = IntMap.elems newChildren
-        --newValue = maximumByKey ($ agent node) (map value listNewChildren)
-        newVisits = sum (map visits listNewChildren)
-        --newVisits = visits node + 1
-        newValue = foldr1 (Vector.zipWith (+)) (map value $ listNewChildren)
-
+  | otherwise = let 
+      (index, toExplore) = pickChild node
+      explored = explore toExplore
+      newChildren = IntMap.insert index explored (children node)
+      listNewChildren = IntMap.elems newChildren
+      --newValue = maximumByKey ($ agent node) (map value listNewChildren)
+      newVisits = sum (map visits listNewChildren)
+      --newVisits = visits node + 1
+      newValue = foldr1 (Vector.zipWith (+)) (map value $ listNewChildren)
+    in node {visits = newVisits, value = newValue, children = newChildren}
 
 --uct :: (Game a s) => Int -> Heuristic a s -> s -> Node a s
 uct n heuristic = (iterateN n explore) . (initNode heuristic)
