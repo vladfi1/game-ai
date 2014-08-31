@@ -12,8 +12,8 @@ import Control.Monad.State
 type Player s = s -> IO s
 
 humanPlayer board = do
-  putStrLn $ show board
-  putStrLn "Enter a number: "
+  print board
+  print "Enter a number: "
   line <- getLine
   let index = read line
   return $ (actions board) !! index
@@ -26,7 +26,7 @@ heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
 cpuPlayer board = do
   let node = UCT.bestChild $ UCT.uct n heuristic board
-  putStrLn $ show $ (UCT.getValue node) (Game.agent board)
+  print $ (UCT.getValue node) (Game.agent board)
   return $ UCT.state node
 
 players :: Map.Map Connect4.Player (Player Connect4Board)
@@ -48,5 +48,5 @@ playGame = do
 
 main = do
   (_, final) <- runStateT playGame Connect4.newGame
-  putStrLn $ "The winner is " ++ (show $ winner final)
-  putStrLn $ show final
+  print $ "The winner is " ++ (show $ winner final)
+  print final
