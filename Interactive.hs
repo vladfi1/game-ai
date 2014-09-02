@@ -5,18 +5,26 @@ import qualified Connect4
 import Game (Game, Heuristic, terminal, actions)
 import qualified Game
 import qualified UCT
+import Utils (inRange)
 
 import qualified Data.Map as Map
 import Control.Monad.State
 
 type Player s = s -> IO s
 
+pick max = do
+  print $ "Enter an integer in [0, " ++ (show max) ++ ")"
+  line <- getLine
+  let input = read line :: Int
+  if inRange (0, max) input
+    then return input
+    else pick max
+
 humanPlayer board = do
   print board
-  print "Enter a number: "
-  line <- getLine
-  let index = read line
-  return $ (actions board) !! index
+  let acts = actions board
+  index <- pick (length acts)
+  return $ acts !! index
 
 n = 2000
 m = 1
