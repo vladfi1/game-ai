@@ -15,6 +15,9 @@ import qualified Numeric
 
 decimals n f = Numeric.showFFloat (Just n) f ""
 
+inRange :: Ord a => (a, a) -> a -> Bool
+inRange (lower, upper) value = lower <= value && value <= upper
+
 maximumByKey :: Ord b => (a -> b) -> [a] -> a
 maximumByKey key = maximumBy (comparing key)
 
