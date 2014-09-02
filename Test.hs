@@ -1,4 +1,4 @@
-module Test where
+module Main where
 
 import qualified UCT
 import UCT (uct, agent, getValue, children, visits)
