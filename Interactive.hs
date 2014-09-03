@@ -1,16 +1,15 @@
+{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Interactive where
 
-import Connect4 (Connect4Board, winner)
-import qualified Connect4
-import Game (Game, Heuristic, terminal, actions)
+import qualified Game
+import Game (Game)
 import qualified Game
 import qualified UCT
 import Utils (inRange)
 
 import qualified Data.Map as Map
 import Control.Monad.State
-
-type Player s = s -> IO s
 
 pick max = do
   print $ "Enter an integer in [0, " ++ (show max) ++ ")"
@@ -22,7 +21,7 @@ pick max = do
 
 humanPlayer board = do
   print board
-  let acts = actions board
+  let acts = Game.actions board
   index <- pick (length acts)
   return $ acts !! index
 
@@ -37,24 +36,21 @@ cpuPlayer board = do
   print $ (UCT.getValue node) (Game.agent board)
   return $ UCT.state node
 
-players :: Map.Map Connect4.Player (Player Connect4Board)
-players = Map.fromList [(Connect4.O, humanPlayer), (Connect4.X, cpuPlayer)]
+playGame players = let
+  move = do
+    board <- get
+    let player = players Map.! (Game.agent board)
+    next <- liftIO $ player board
+    put next
+  playGame' = do
+    board <- get
+    if Game.terminal board
+      then return ()
+      else do move
+              playGame'
+  in playGame'
 
-move :: StateT Connect4Board IO ()
-move = do
-  board <- get
-  let player = players Map.! (Connect4.player board)
-  next <- liftIO $ player board
-  put next
-
-playGame = do
-  board <- get
-  if terminal board
-    then return ()
-    else do move
-            playGame
-
-main = do
-  (_, final) <- runStateT playGame Connect4.newGame
-  print $ "The winner is " ++ (show $ winner final)
+main players initial = do
+  (_, final) <- runStateT (playGame players) initial
+--  print $ "The winner is " ++ (show $ winner final)
   print final
