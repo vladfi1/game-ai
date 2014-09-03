@@ -7,7 +7,7 @@ import Connect4 (newGame)
 import qualified Data.IntMap as IntMap
 import qualified Utils
 
-n = 2000
+n = 1000
 m = 1
 
 --strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))

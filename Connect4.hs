@@ -31,17 +31,13 @@ other X = O
 other O = X
 
 type Square = (Int, Int)
+type Board = Map Square Player
 type WinSet = Int
-type Stat = Vector Int
-
-getStat :: Player -> Stat -> Int
-getStat player stat = stat ! (fromEnum player)
 
 data Connect4Board =
   Connect4Board {
     player  :: Player,
-    squares :: Map Square Player,
-    stats   :: Map WinSet Stat,
+    squares :: Board,
     winner  :: Maybe Player
   }
 
@@ -51,47 +47,47 @@ xrange = range width
 yrange = range height
 connect = 4
 
+deltas = [(1, 0), (0, 1), (1, 1), (1, -1)]
+
 vertical = concat [[[(x, y+z) | z <- range connect] | y <- [0..height-connect]] | x <- xrange]
 horizontal = concat [[[(x+z, y) | z <- range connect] | x <- [0..width-connect]] | y <- yrange]
 diagonal1 = concat [[[(x+z, y+z) | z <- range connect] | y <- [0..height-connect]] | x <- [0..width-connect]]
 diagonal2 = concat [[[(x+z, y-z) | z <- range connect] | y <- [connect-1..height-1]] | x <- [0..width-connect]]
 winsets = concat [vertical, horizontal, diagonal1, diagonal2] :: [[Square]]
 
+vectorWinSets = Vector.fromList winsets
+
+getWinSet :: WinSet -> [Square]
+getWinSet = (vectorWinSets Vector.!)
+
 inverseWinSets :: Map Square [WinSet]
 inverseWinSets = Map.fromList $ Utils.invert (enumerate winsets)
 
-emptyStat = Vector.fromList [0 | _ <- allPlayers]
+getWinSets :: Square -> [[Square]]
+getWinSets square = [getWinSet winset | winset <- inverseWinSets Map.! square]
 
 newGame = Connect4Board {
   player  = X,
   squares = Map.empty,
-  stats   = Map.fromList $ enumerate [emptyStat | _ <- winsets],
   winner  = Nothing
 }
 
-isNil :: Stat -> Bool
-isNil = Vector.all (> 0)
+check :: Board -> Player -> Square -> Maybe Player
+check board player square =
+  let check' winset = all (== Just player) [Map.lookup square board | square <- winset] in
+  if any check' (getWinSets square)
+    then Just player
+    else Nothing
 
---update :: Player -> Stat -> Stat
-update player stat =
-  let newStat = stat // [(i, 1 + stat ! i)] in
-  if isNil newStat then Nothing else
-    Just newStat
-  where
-    i = fromEnum player
-
-wins player stat = getStat player stat == connect
-
-play loc board =
+play :: Connect4Board -> Square -> Connect4Board
+play board loc =
   let
-    previous = player board
-    newStats = foldr (Map.update (update previous)) (stats board) (inverseWinSets Map.! loc)
+    previous   = player board
+    newSquares = Map.insert loc previous (squares board)
   in Connect4Board {
     player  = other previous,
-    squares = Map.insert loc previous (squares board),
-    stats   = newStats,
-    winner  = if any (wins previous) (catMaybes [Map.lookup winset newStats | winset <- inverseWinSets Map.! loc])
-                then Just previous else Nothing
+    squares = newSquares,
+    winner  = check newSquares previous loc
   }
 
 dropLoc (x,y) squares
@@ -99,9 +95,9 @@ dropLoc (x,y) squares
   | Map.notMember (x,y) squares = Just (x, y)
   | otherwise                   = dropLoc (x, y+1) squares
 
-dropCol x board = do
+dropCol board x = do
   loc <- dropLoc (x, 0) (squares board)
-  return (play loc board)
+  return (play board loc)
 
 score board player = 
   case winner board of
@@ -113,7 +109,7 @@ instance Game Player Connect4Board where
 
   terminal board = (isJust $ winner board) || Map.size (squares board) == width * height
   
-  actions board = catMaybes [dropCol x board | x <- xrange]
+  actions board = catMaybes [dropCol board x | x <- xrange]
   
   evaluate = score
 
