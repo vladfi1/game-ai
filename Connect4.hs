@@ -3,21 +3,20 @@
 
 module Connect4 where
 
-import Data.Map (Map)
-import qualified Data.Map as Map
-
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 
+import Data.Map (Map)
+import qualified Data.Map as Map
 
-import Data.Vector (Vector, (!), (//))
+import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 
 import Data.Maybe (catMaybes, isJust)
 
 import Game (Game, agent, terminal, actions, evaluate)
 
-import Utils (allValues, range, listToIntMap, enumerate, mem, toVector, fromVector)
+import Utils (allValues, range, listToIntMap, enumerate)
 import qualified Utils
 
 data Player = X | O
@@ -31,7 +30,12 @@ other X = O
 other O = X
 
 type Square = (Int, Int)
-type Board = Map Square Player
+type Column = IntMap Player
+type Board =  IntMap Column
+
+getSquare :: Square -> Board -> Maybe Player
+getSquare (x, y) = (IntMap.lookup y) . (IntMap.! x)
+
 type WinSet = Int
 
 data Connect4Board =
@@ -40,6 +44,9 @@ data Connect4Board =
     squares :: Board,
     winner  :: Maybe Player
   }
+
+count :: Connect4Board -> Int
+count board = sum $ map IntMap.size (IntMap.elems $ squares board)
 
 width = 7
 height = 6
@@ -68,36 +75,37 @@ getWinSets square = [getWinSet winset | winset <- inverseWinSets Map.! square]
 
 newGame = Connect4Board {
   player  = X,
-  squares = Map.empty,
+  squares = IntMap.fromList $ enumerate (replicate width IntMap.empty),
   winner  = Nothing
 }
 
 check :: Board -> Player -> Square -> Maybe Player
 check board player square =
-  let check' winset = all (== Just player) [Map.lookup square board | square <- winset] in
+  let check' winset = all (== Just player) [getSquare square board | square <- winset] in
   if any check' (getWinSets square)
     then Just player
     else Nothing
 
-play :: Connect4Board -> Square -> Connect4Board
-play board loc =
-  let
-    previous   = player board
-    newSquares = Map.insert loc previous (squares board)
-  in Connect4Board {
+dropCol :: Column -> Maybe Int
+dropCol col =
+  if size == height
+    then Nothing
+    else Just size
+  where size = IntMap.size col
+
+play :: Connect4Board -> Int -> Maybe Connect4Board
+play board x = do
+  let cols = squares board
+  let col = (cols IntMap.! x)
+  y <- dropCol col
+  let previous = player board
+  let newCol = IntMap.insert y previous col
+  let newSquares = IntMap.insert x newCol cols
+  return Connect4Board {
     player  = other previous,
     squares = newSquares,
-    winner  = check newSquares previous loc
+    winner  = check newSquares previous (x, y)
   }
-
-dropLoc (x,y) squares
-  | y == height                 = Nothing
-  | Map.notMember (x,y) squares = Just (x, y)
-  | otherwise                   = dropLoc (x, y+1) squares
-
-dropCol board x = do
-  loc <- dropLoc (x, 0) (squares board)
-  return (play board loc)
 
 score board player = 
   case winner board of
@@ -107,9 +115,9 @@ score board player =
 instance Game Player Connect4Board where
   agent = player
 
-  terminal board = (isJust $ winner board) || Map.size (squares board) == width * height
+  terminal board = (isJust $ winner board) || count board == width * height
   
-  actions board = catMaybes [dropCol board x | x <- xrange]
+  actions board = catMaybes [play board x | x <- xrange]
   
   evaluate = score
 
@@ -117,10 +125,8 @@ showSquare :: Maybe Player -> String
 showSquare Nothing = " "
 showSquare (Just player) = show player
 
-getSquare loc board = Map.lookup loc (squares board)
-
 instance Show Connect4Board where
   show board =
-    unlines [concat [showSquare (getSquare (x, y) board) | x <- xrange] | y <- reverse yrange] ++
+    unlines [concat [showSquare (getSquare (x, y) (squares board)) | x <- xrange] | y <- reverse yrange] ++
     "Player " ++ (show $ player board) ++ " to move."
 
