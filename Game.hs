@@ -18,7 +18,7 @@ lookAheadEval heuristic state =
   if terminal state then heuristic state else
     maximumByKey ($ (agent state)) (map heuristic (actions state))
 
---lookAheadEvalDepth :: Game a s => Int -> Heuristic a s -> Heuristic a s
+lookAheadEvalDepth :: Game a s => Int -> Heuristic a s -> Heuristic a s
 lookAheadEvalDepth n = iterateN n lookAheadEval
 
 lookAheadPlay :: Game a s => Heuristic a s -> s -> s
