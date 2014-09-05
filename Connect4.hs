@@ -3,6 +3,9 @@
 
 module Connect4 where
 
+import Prelude hiding ((+), (-), (*), sum, negate)
+import NumericPrelude
+
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
 
@@ -19,6 +22,8 @@ import Game (Game, agent, terminal, actions, evaluate)
 import Utils (allValues, range, listToIntMap, enumerate)
 import qualified Utils
 
+import Control.Monad.State
+
 data Player = X | O
   deriving (Show, Eq, Ord, Enum, Bounded)
 
@@ -34,9 +39,7 @@ type Column = IntMap Player
 type Board =  IntMap Column
 
 getSquare :: Square -> Board -> Maybe Player
-getSquare (x, y) = (IntMap.lookup y) . (IntMap.! x)
-
-type WinSet = Int
+getSquare (x, y) = (IntMap.lookup x) >=> (IntMap.lookup y)
 
 data Connect4Board =
   Connect4Board {
@@ -54,24 +57,22 @@ xrange = range width
 yrange = range height
 connect = 4
 
+type Delta = (Int, Int)
 deltas = [(1, 0), (0, 1), (1, 1), (1, -1)]
 
-vertical = concat [[[(x, y+z) | z <- range connect] | y <- [0..height-connect]] | x <- xrange]
-horizontal = concat [[[(x+z, y) | z <- range connect] | x <- [0..width-connect]] | y <- yrange]
-diagonal1 = concat [[[(x+z, y+z) | z <- range connect] | y <- [0..height-connect]] | x <- [0..width-connect]]
-diagonal2 = concat [[[(x+z, y-z) | z <- range connect] | y <- [connect-1..height-1]] | x <- [0..width-connect]]
-winsets = concat [vertical, horizontal, diagonal1, diagonal2] :: [[Square]]
+probe :: Board -> Player -> Square -> Delta -> Int
+probe board player square delta = let
+  probe' = do
+    (current, n) <- get
+    if getSquare current board == Just player
+      then do put (current + delta, n+1)
+              probe'
+      else return n
+  in evalState probe' (square + delta, 0)
 
-vectorWinSets = Vector.fromList winsets
-
-getWinSet :: WinSet -> [Square]
-getWinSet = (vectorWinSets Vector.!)
-
-inverseWinSets :: Map Square [WinSet]
-inverseWinSets = Map.fromList $ Utils.invert (enumerate winsets)
-
-getWinSets :: Square -> [[Square]]
-getWinSets square = [getWinSet winset | winset <- inverseWinSets Map.! square]
+biprobe :: Board -> Player -> Square -> Delta -> Int
+biprobe board player square delta =
+  sum $ map (probe board player square) [delta, negate delta]
 
 newGame = Connect4Board {
   player  = X,
@@ -81,8 +82,7 @@ newGame = Connect4Board {
 
 check :: Board -> Player -> Square -> Maybe Player
 check board player square =
-  let check' winset = all (== Just player) [getSquare square board | square <- winset] in
-  if any check' (getWinSets square)
+  if any (== connect - 1) (map (biprobe board player square) deltas)
     then Just player
     else Nothing
 
