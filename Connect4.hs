@@ -62,13 +62,11 @@ deltas = [(1, 0), (0, 1), (1, 1), (1, -1)]
 
 probe :: Board -> Player -> Square -> Delta -> Int
 probe board player square delta = let
-  probe' = do
-    (current, n) <- get
+  probe' current n =
     if getSquare current board == Just player
-      then do put (current + delta, n+1)
-              probe'
-      else return n
-  in evalState probe' (square + delta, 0)
+      then probe' (current + delta) (n+1)
+      else n
+  in probe' (square + delta) 0
 
 biprobe :: Board -> Player -> Square -> Delta -> Int
 biprobe board player square delta =
