@@ -1,0 +1,225 @@
+	Fri Sep  5 02:29 2014 Time and Allocation Profiling Report  (Final)
+
+	   test +RTS -p -RTS
+
+	total time  =       36.31 secs   (36307 ticks @ 1000 us, 1 processor)
+	total alloc = 25,603,263,512 bytes  (excludes profiling overheads)
+
+COST CENTRE       MODULE   %time %alloc
+
+probe             Connect4  15.2   12.4
+getSquare         Connect4  15.1    6.7
+biprobe           Connect4  13.5   28.6
+probe.probe'      Connect4   7.3    2.6
+play              Connect4   4.8    7.3
+count             Connect4   4.8    4.4
+maximumByKey      Utils      4.4    1.3
+explore.newValue  UCT        3.7    6.3
+check             Connect4   3.7    1.4
+actions           Connect4   3.6    8.6
+play.newSquares   Connect4   3.1    4.8
+toVector          Utils      2.2    2.5
+lookAheadEval     Game       2.2    2.8
+dropCol.size      Connect4   1.8    0.7
+play.col          Connect4   1.6    0.0
+score             Connect4   1.6    0.0
+play.newCol       Connect4   1.2    2.2
+explore.newVisits UCT        1.0    1.3
+initNode          UCT        0.9    1.4
+
+
+                                                                                     individual     inherited
+COST CENTRE                     MODULE                             no.     entries  %time %alloc   %time %alloc
+
+MAIN                            MAIN                                71           0    0.0    0.0   100.0  100.0
+ main                           Main                               143           0    0.0    0.0     0.0    0.0
+  inspect                       Main                               148           0    0.0    0.0     0.0    0.0
+   decimals                     Utils                              300         231    0.0    0.0     0.0    0.0
+   agent                        UCT                                296          39    0.0    0.0     0.0    0.0
+    state                       UCT                                298          39    0.0    0.0     0.0    0.0
+    player                      Connect4                           297          39    0.0    0.0     0.0    0.0
+   getValue                     UCT                                292         231    0.0    0.0     0.0    0.0
+    getValue.\                  UCT                                293         231    0.0    0.0     0.0    0.0
+     value                      UCT                                299         231    0.0    0.0     0.0    0.0
+     fromVector                 Utils                              294         231    0.0    0.0     0.0    0.0
+      fromEnum                  Connect4                           295         231    0.0    0.0     0.0    0.0
+   visits                       UCT                                291         462    0.0    0.0     0.0    0.0
+   children                     UCT                                181          78    0.0    0.0     0.0    0.0
+   state                        UCT                                159          39    0.0    0.0     0.0    0.0
+   show                         Connect4                           149          39    0.0    0.0     0.0    0.0
+    showsPrec                   Connect4                           180          39    0.0    0.0     0.0    0.0
+    player                      Connect4                           179          39    0.0    0.0     0.0    0.0
+    showSquare                  Connect4                           178        1638    0.0    0.0     0.0    0.0
+     showsPrec                  Connect4                           322         741    0.0    0.0     0.0    0.0
+    squares                     Connect4                           158          39    0.0    0.0     0.0    0.0
+    getSquare                   Connect4                           157        1638    0.0    0.0     0.0    0.0
+ CAF                            Main                               141           0    0.0    0.0   100.0  100.0
+  m                             Main                               216           1    0.0    0.0     0.0    0.0
+  n                             Main                               165           1    0.0    0.0     0.0    0.0
+  strat                         Main                               161           1    0.0    0.0     0.0    0.0
+   lookAheadEvalDepth           Game                               215           1    0.0    0.0     0.0    0.0
+    iterateN                    Utils                              217           2    0.0    0.0     0.0    0.0
+   uct                          UCT                                162           1    0.0    0.0     0.0    0.0
+  game                          Main                               145           1    0.0    0.0   100.0  100.0
+   play                         Main                               146          39    0.0    0.0   100.0  100.0
+    state                       UCT                                321          38    0.0    0.0     0.0    0.0
+    bestChild                   UCT                                305          38    0.0    0.0     0.0    0.0
+     bestChild.\                UCT                                315           0    0.0    0.0     0.0    0.0
+      agent                     UCT                                316          38    0.0    0.0     0.0    0.0
+       state                    UCT                                318          38    0.0    0.0     0.0    0.0
+       player                   Connect4                           317          38    0.0    0.0     0.0    0.0
+     listChildren               UCT                                308           0    0.0    0.0     0.0    0.0
+      children                  UCT                                309          38    0.0    0.0     0.0    0.0
+     maximumByKey               Utils                              306          38    0.0    0.0     0.0    0.0
+      bestChild.\               UCT                                310         382    0.0    0.0     0.0    0.0
+       getValue                 UCT                                311         382    0.0    0.0     0.0    0.0
+        getValue.\              UCT                                312         382    0.0    0.0     0.0    0.0
+         visits                 UCT                                320         382    0.0    0.0     0.0    0.0
+         value                  UCT                                319         382    0.0    0.0     0.0    0.0
+         fromVector             Utils                              313         382    0.0    0.0     0.0    0.0
+          fromEnum              Connect4                           314         382    0.0    0.0     0.0    0.0
+    terminal                    Connect4                           302          39    0.0    0.0     0.0    0.0
+     count                      Connect4                           304          38    0.0    0.0     0.0    0.0
+     squares                    Connect4                           303          38    0.0    0.0     0.0    0.0
+    winner                      Connect4                           301          39    0.0    0.0     0.0    0.0
+    play.node                   Main                               160          39    0.0    0.0   100.0  100.0
+     strat                      Main                               163           0    0.0    0.0   100.0  100.0
+      lookAheadEvalDepth        Game                               218           0    0.0    0.0    69.0   70.3
+       iterateN                 Utils                              219           0    0.1    0.0    69.0   70.3
+        lookAheadEval           Game                               220     1373384    2.1    2.8    68.9   70.3
+         player                 Connect4                           281      244278    0.0    0.0     0.0    0.0
+         actions                Connect4                           237     1350581    3.0    7.1    58.9   63.1
+          play                  Connect4                           238     9454067    3.6    6.2    55.9   56.0
+           play.previous        Connect4                           259     7106222    0.5    0.0     0.5    0.0
+            player              Connect4                           260     7106222    0.0    0.0     0.0    0.0
+           play.newCol          Connect4                           255     7206799    1.0    1.8     1.0    1.8
+           play.newSquares      Connect4                           254     7297879    2.6    4.0     2.6    4.0
+           check                Connect4                           248     7297879    2.9    1.1    45.1   43.4
+            biprobe             Connect4                           249    28762204   11.1   24.0    42.2   42.3
+             probe              Connect4                           250    57524408   12.6   10.4    31.1   18.3
+              ==                Connect4                           256    20941846    0.0    0.0     0.0    0.0
+              probe.probe'      Connect4                           252    69747865    6.1    2.2    18.5    7.8
+               ==               Connect4                           278     6293073    0.0    0.0     0.0    0.0
+               getSquare        Connect4                           253    12223457   12.4    5.6    12.4    5.6
+              getSquare         Connect4                           251    57524408    0.0    0.0     0.0    0.0
+           dropCol              Connect4                           242     9454067    0.2    0.0     1.7    0.6
+            dropCol.size        Connect4                           243     9454067    1.5    0.6     1.5    0.6
+           play.col             Connect4                           241     9454067    1.3    0.0     1.3    0.0
+           play.cols            Connect4                           239     9454067    0.2    0.0     0.2    0.0
+            squares             Connect4                           240     9454067    0.0    0.0     0.0    0.0
+         maximumByKey           Utils                              236     1350581    2.6    1.0     4.1    1.0
+          evaluate              Connect4                           245           0    0.4    0.0     1.5    0.0
+           score                Connect4                           246    11894596    1.1    0.0     1.1    0.0
+            ==                  Connect4                           280      570169    0.0    0.0     0.0    0.0
+            winner              Connect4                           247    11894596    0.0    0.0     0.0    0.0
+         terminal               Connect4                           222     1373384    0.3    0.0     3.8    3.3
+          count                 Connect4                           235     1355625    3.6    3.3     3.6    3.3
+          squares               Connect4                           234     1355625    0.0    0.0     0.0    0.0
+         winner                 Connect4                           221     1373384    0.0    0.0     0.0    0.0
+      uct                       UCT                                164           0    0.0    0.0    30.9   29.7
+       initNode                 UCT                                171     1393783    0.9    1.4    18.3   17.6
+        toVector                Utils                              210     1373384    2.2    2.5     3.3    2.6
+         lookAheadEvalDepth     Game                               263           0    0.0    0.0     0.6    0.0
+          iterateN              Utils                              264           0    0.0    0.0     0.6    0.0
+           lookAheadEval        Game                               265           0    0.1    0.0     0.6    0.0
+            evaluate            Connect4                           266           0    0.1    0.0     0.5    0.0
+             score              Connect4                           267     2475677    0.4    0.0     0.4    0.0
+              ==                Connect4                           282      515695    0.0    0.0     0.0    0.0
+              winner            Connect4                           268     2475677    0.0    0.0     0.0    0.0
+         allValues              Utils                              211     1373384    0.4    0.1     0.4    0.1
+          enumFrom              Connect4                           212     1373384    0.1    0.0     0.1    0.0
+        listToIntMap            Utils                              193      306479    0.3    0.4     0.7    1.3
+         enumerate              Utils                              194      306479    0.3    0.4     0.4    0.9
+          range                 Utils                              195      306479    0.1    0.5     0.1    0.5
+        actions                 Connect4                           186      306479    0.7    1.6    13.5   12.3
+         play                   Connect4                           187     2145353    1.2    1.2    12.8   10.8
+          other                 Connect4                           261     1370942    0.2    0.0     0.2    0.0
+          play.previous         Connect4                           257     1393744    0.1    0.0     0.1    0.0
+           player               Connect4                           258     1393744    0.0    0.0     0.0    0.0
+          play.newCol           Connect4                           233     1386117    0.2    0.3     0.2    0.3
+          play.newSquares       Connect4                           230     1393744    0.5    0.8     0.5    0.8
+          check                 Connect4                           223     1393744    0.8    0.2     9.8    8.3
+           biprobe              Connect4                           225     5544393    2.4    4.6     9.0    8.1
+            probe               Connect4                           226    11088786    2.6    2.0     6.5    3.5
+             ==                 Connect4                           277     4037481    0.0    0.0     0.0    0.0
+             probe.probe'       Connect4                           228    13377372    1.2    0.4     3.9    1.5
+              ==                Connect4                           279     1188235    0.0    0.0     0.0    0.0
+              getSquare         Connect4                           229     2288586    2.8    1.1     2.8    1.1
+             getSquare          Connect4                           227    11088786    0.0    0.0     0.0    0.0
+          dropCol               Connect4                           191     2145353    0.1    0.0     0.5    0.1
+           dropCol.size         Connect4                           192     2145353    0.4    0.1     0.4    0.1
+          play.col              Connect4                           190     2145353    0.3    0.0     0.3    0.0
+          play.cols             Connect4                           188     2145353    0.1    0.0     0.1    0.0
+           squares              Connect4                           189     2145353    0.0    0.0     0.0    0.0
+       explore                  UCT                                167      476644    0.4    0.4    12.6   12.1
+        explore.newValue        UCT                                287       38000    0.0    0.0     0.1    0.1
+         explore.newValue.\     UCT                                289       74785    0.0    0.0     0.0    0.0
+          visits                UCT                                290       38000    0.0    0.0     0.0    0.0
+         value                  UCT                                288       38000    0.0    0.0     0.0    0.0
+        explore.newValue        UCT                                285      399644    3.7    6.3     3.9    6.3
+         value                  UCT                                286     1918090    0.1    0.0     0.1    0.0
+        explore.newVisits       UCT                                283       38000    0.0    0.0     0.0    0.0
+         visits                 UCT                                284       38000    0.0    0.0     0.0    0.0
+        explore.explored        UCT                                276      437644    0.1    0.1     0.1    0.1
+        explore.toExplore       UCT                                275      437644    0.0    0.0     0.0    0.0
+        explore.listNewChildren UCT                                273      437606    0.2    0.4     0.2    0.4
+        explore.newVisits       UCT                                272      437606    1.0    1.3     1.2    1.3
+         visits                 UCT                                274     2146861    0.2    0.0     0.2    0.0
+        explore.newChildren     UCT                                270      437644    0.2    0.2     0.2    0.2
+         children               UCT                                271      437644    0.0    0.0     0.0    0.0
+        explore.index           UCT                                269      437644    0.0    0.0     0.0    0.0
+        explore.(...)           UCT                                182      437644    0.1    0.1     5.0    2.2
+         pickChild              UCT                                183      437644    0.5    0.8     5.0    2.2
+          pickChild.\           UCT                                197           0    0.2    0.0     0.4    0.1
+           agent                UCT                                205      407915    0.1    0.0     0.2    0.0
+            state               UCT                                208      407915    0.1    0.0     0.1    0.0
+            player              Connect4                           207      407915    0.1    0.0     0.1    0.0
+           visits               UCT                                198      407915    0.0    0.0     0.0    0.0
+          children              UCT                                185      437644    0.0    0.0     0.0    0.0
+          maximumByKey          Utils                              184      437644    1.8    0.3     4.0    1.3
+           getValue             UCT                                200     3418892    0.0    0.0     0.0    0.0
+           visits               UCT                                199     6837784    0.0    0.0     0.0    0.0
+           pickChild.\          UCT                                196     3418892    0.4    0.3     2.2    1.0
+            getValue            UCT                                201           0    0.2    0.0     1.8    0.6
+             getValue.\         UCT                                202     3418892    0.4    0.0     1.6    0.6
+              value             UCT                                209     3418892    0.0    0.0     0.0    0.0
+              fromVector        Utils                              203     3418892    1.0    0.6     1.1    0.6
+               fromEnum         Connect4                           204     3418892    0.1    0.0     0.1    0.0
+        state                   UCT                                170      476644    0.1    0.0     0.1    0.0
+        terminal                Connect4                           168      476644    0.2    0.0     1.4    1.1
+         count                  Connect4                           174      442688    1.2    1.1     1.2    1.1
+         squares                Connect4                           173      442688    0.0    0.0     0.0    0.0
+         winner                 Connect4                           169      476644    0.0    0.0     0.0    0.0
+       iterateN                 Utils                              166       39039    0.0    0.0     0.0    0.0
+  nodes                         Main                               144           1    0.0    0.0     0.0    0.0
+  main                          Main                               142           1    0.0    0.0     0.0    0.0
+   inspect                      Main                               147          39    0.0    0.0     0.0    0.0
+ CAF                            UCT                                140           0    0.0    0.0     0.0    0.0
+  listChildren                  UCT                                307           1    0.0    0.0     0.0    0.0
+ CAF                            Connect4                           138           0    0.0    0.0     0.0    0.0
+  evaluate                      Connect4                           244           1    0.0    0.0     0.0    0.0
+   score                        Connect4                           262           0    0.0    0.0     0.0    0.0
+  connect                       Connect4                           232           1    0.0    0.0     0.0    0.0
+  check                         Connect4                           231           0    0.0    0.0     0.0    0.0
+  deltas                        Connect4                           224           1    0.0    0.0     0.0    0.0
+  enumFrom                      Connect4                           214           0    0.0    0.0     0.0    0.0
+  minBound                      Connect4                           213           1    0.0    0.0     0.0    0.0
+  agent                         Connect4                           206           1    0.0    0.0     0.0    0.0
+  terminal                      Connect4                           177           0    0.0    0.0     0.0    0.0
+  newGame                       Connect4                           172           1    0.0    0.0     0.0    0.0
+   enumerate                    Utils                              175           1    0.0    0.0     0.0    0.0
+    range                       Utils                              176           1    0.0    0.0     0.0    0.0
+  width                         Connect4                           156           1    0.0    0.0     0.0    0.0
+  xrange                        Connect4                           154           1    0.0    0.0     0.0    0.0
+   range                        Utils                              155           1    0.0    0.0     0.0    0.0
+  height                        Connect4                           153           1    0.0    0.0     0.0    0.0
+  yrange                        Connect4                           151           1    0.0    0.0     0.0    0.0
+   range                        Utils                              152           1    0.0    0.0     0.0    0.0
+  show                          Connect4                           150           0    0.0    0.0     0.0    0.0
+ CAF                            Data.Vector.Generic                135           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.Float                          121           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.Conc.Signal                    115           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Handle.FD                   113           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Encoding                     96           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.IO.Encoding.Iconv               91           0    0.0    0.0     0.0    0.0
+ CAF                            GHC.Integer.Logarithms.Internals    79           0    0.0    0.0     0.0    0.0

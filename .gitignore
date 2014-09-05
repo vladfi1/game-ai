@@ -4,7 +4,6 @@
 
 # experiments
 Test
-*.prof
 
 # cabal
 .cabal-sandbox/
