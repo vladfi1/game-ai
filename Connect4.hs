@@ -58,6 +58,7 @@ yrange = range height
 connect = 4
 
 type Delta = (Int, Int)
+deltas :: [Delta]
 deltas = [(1, 0), (0, 1), (1, 1), (1, -1)]
 
 probe :: Board -> Player -> Square -> Delta -> Int
@@ -70,7 +71,9 @@ probe board player square delta = let
 
 biprobe :: Board -> Player -> Square -> Delta -> Int
 biprobe board player square delta =
-  sum $ map (probe board player square) [delta, negate delta]
+  probe board player square delta + probe board player square (negate delta)
+--  where f = probe board player square
+--  sum $ map (probe board player square) [delta, negate delta]
 
 newGame = Connect4Board {
   player  = X,
