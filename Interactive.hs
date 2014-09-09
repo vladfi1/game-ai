@@ -4,7 +4,7 @@ import qualified Game
 import Game (Game, Heuristic)
 import qualified Game
 import qualified UCT
-import Utils (inRange)
+import Utils (inRange, decimals)
 
 import qualified Data.Map as Map
 import Control.Monad.State
@@ -31,9 +31,10 @@ heuristic :: Game a s => Heuristic a s
 heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
 cpuPlayer board = do
-  let node = UCT.bestChild $ UCT.uct n heuristic board
-  print $ (UCT.getValue node) (Game.agent board)
-  return $ UCT.state node
+  let node = UCT.uct n heuristic board
+  print $ map ((decimals 2) . ($ UCT.agent node) . UCT.winRatio) (UCT.listChildren node)
+  print $ map UCT.getVisits (UCT.listChildren node)
+  return $ UCT.state $ UCT.bestChild node
 
 playGame players = let
   move = do
