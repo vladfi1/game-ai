@@ -1,9 +1,7 @@
-{-# LANGUAGE NoMonomorphismRestriction #-}
-
 module Interactive where
 
 import qualified Game
-import Game (Game)
+import Game (Game, Heuristic)
 import qualified Game
 import qualified UCT
 import Utils (inRange)
@@ -29,6 +27,7 @@ n = 2000
 m = 1
 
 --heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
+heuristic :: Game a s => Heuristic a s
 heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
 
 cpuPlayer board = do
