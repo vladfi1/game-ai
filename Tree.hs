@@ -44,3 +44,5 @@ adjust f index node =
         right = newRight
       }
 
+update :: Monoid a => a -> Int -> RangeTree a -> RangeTree a
+update a = adjust (const a)
