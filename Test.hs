@@ -1,7 +1,7 @@
 module Main where
 
 import qualified UCT
-import UCT (uct, agent, getValue, children, visits)
+import UCT
 import qualified Game
 import Connect4 (newGame)
 import qualified Data.IntMap as IntMap
@@ -22,8 +22,8 @@ nodes = map snd game
 
 inspect node = do
   print $ UCT.state node
-  print $ map ((Utils.decimals 2) . ($ agent node) . getValue) (IntMap.elems $ children node)
-  print $ map visits (IntMap.elems $ children node)
+  print $ map ((Utils.decimals 2) . ($ agent node) . winRatio) (listChildren node)
+  print $ map getVisits (listChildren node)
 
 main = sequence $ map inspect nodes
 

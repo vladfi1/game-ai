@@ -1,4 +1,4 @@
-module UCT where
+module UCT (module UCT, module MCTS) where
 
 import Game (Game, Heuristic)
 import qualified Game
@@ -11,57 +11,53 @@ import qualified Data.Vector as Vector
 
 import Data.Maybe (catMaybes)
 
+import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
+
 import Utils (listToIntMap, maximumByKey, iterateN, toVector, fromVector)
 
-data Node a s =
-  Node {
-    state     :: s,
-    visits    :: Double,
-    value     :: Vector Double,
-    children  :: IntMap (Node a s)
+import MCTS
+
+data Stats a = Stats {
+  visits :: Double,
+  wins :: Vector Double
+}
+
+getVisits = visits . MCTS.value
+
+instance (Bounded a, Enum a) => Monoid (Stats a) where
+  mempty = toStats (const 0)
+  mappend s1 s2 = Stats {
+    visits = visits s1 + visits s2,
+    wins = Vector.zipWith (+) (wins s1) (wins s2)
   }
 
-agent :: Game a s => Node a s -> a
-agent node = Game.agent $ state node
+toStats :: (Bounded a, Enum a) => (a -> Double) -> Stats a
+toStats heuristic =
+  let wins = toVector heuristic in
+    Stats {visits = Vector.sum wins, wins = wins}
 
-getValue node = \a -> (fromVector $ value node) a / (visits node)
+winRatio node = let stats = value node in
+  \a -> (fromVector $ wins stats) a / (visits stats)
 
-listChildren = IntMap.elems . children
-getChild node n = (children node) IntMap.! n
+bestChild node = maximumByKey (\child -> (winRatio child) (agent node)) (listChildren node)
 
-bestChild node = maximumByKey (\child -> (getValue child) (agent node)) (listChildren node)
-
-initNode heuristic state =
-  Node {
-    state = state,
-    visits = 1,
-    value = toVector $ heuristic state,
-    children = listToIntMap $ map (initNode heuristic) (Game.actions state)
-  }
-
-pickChild node = maximumByKey
-  (\(_, child) -> sqrt (2 * log (visits node) / visits child) + getValue child (agent node))
+ucb node = maximumByKey
+  (\(_, child) -> sqrt (2 * log (getVisits node) / getVisits child) + winRatio child (agent node))
   (IntMap.assocs $ children node)
 
-explore node
-  | Game.terminal (state node) = let
-      newVisits = visits node + 1
-      newValue = Vector.map (\v -> v / visits node * newVisits) (value node)
-      in node {visits = newVisits, value = newValue}
---  | (visits node) == 1 = node {visits = 2, value = value $ explore (bestChild node)}
-  | otherwise = let 
-      (index, toExplore) = pickChild node
-      explored = explore toExplore
-      newChildren = IntMap.insert index explored (children node)
-      listNewChildren = IntMap.elems newChildren
-      --newValue = maximumByKey ($ agent node) (map value listNewChildren)
-      newVisits = sum (map visits listNewChildren)
-      --newVisits = visits node + 1
-      newValue = foldr1 (Vector.zipWith (+)) (map value $ listNewChildren)
-    in node {visits = newVisits, value = newValue, children = newChildren}
+increment node = node {
+  value = (value node) <> (toStats $ winRatio node)
+}
+
+sumChildren node =
+  mconcat $ map value (listChildren node)
+
+strategy :: (Game a s, Bounded a, Enum a) => Strategy s (Stats a)
+strategy = Strategy {
+  pick = fst . ucb,
+  terminal = increment,
+  incorporate = \node _ -> sumChildren node
+}
 
 --uct :: (Game a s) => Int -> Heuristic a s -> s -> Node a s
-uct n heuristic = (iterateN n explore) . (initNode heuristic)
-
---uctPlayer :: (Game a s) => Int -> Heuristic a s -> s -> s
-uctPlayer n heuristic state_ = (state . bestChild) $ uct n heuristic state_
+uct n heuristic = mcts strategy n (toStats . heuristic)
