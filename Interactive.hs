@@ -6,7 +6,6 @@ import qualified Game
 import qualified UCT
 import Utils (inRange, decimals)
 
-import qualified Data.Map as Map
 import Control.Monad.State
 
 pick max = do
@@ -39,7 +38,7 @@ cpuPlayer board = do
 playGame players = let
   move = do
     board <- get
-    let player = players Map.! (Game.agent board)
+    let player = players (Game.agent board)
     next <- liftIO $ player board
     put next
   playGame' = do
