@@ -4,7 +4,6 @@ import qualified UCT
 import UCT
 import qualified Game
 import Connect4 (newGame)
-import qualified Data.IntMap as IntMap
 import qualified Utils
 
 n = 1000
