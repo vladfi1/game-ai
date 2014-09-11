@@ -3,6 +3,8 @@
 
 module Game where
 
+import Control.Monad.Random
+
 import Utils (maximumByKey, iterateN)
 
 type Heuristic a s = s -> a -> Double
@@ -38,4 +40,27 @@ finalState = until terminal
 
 playOutEval :: Game a s => (s -> s) -> Heuristic a s
 playOutEval play state = evaluate (finalState play state)
+
+playOutM :: (Monad m, Game a s) => (s -> m s) -> s -> m [s]
+playOutM play state =
+  if terminal state then return [state]
+    else do
+      next <- play state
+      rest <- playOutM play next
+      return $ state : rest
+
+playOutEvalM :: (Monad m, Game a s) => (s -> m s) -> s -> m (a -> Double)
+playOutEvalM play state = do
+  game <- playOutM play state
+  let final = last game
+  return $ evaluate final
+
+randomPlayer :: (MonadRandom m, Game a s) => s -> m s
+randomPlayer state = do
+  let states = actions state
+  index <- getRandomR (0, length states + 1)
+  return $ states !! index
+
+playOutEvalR :: (MonadRandom m, Game a s) => s -> m (a -> Double)
+playOutEvalR = playOutEvalM randomPlayer
 
