@@ -128,6 +128,7 @@ showSquare (Just player) = show player
 
 instance Show Connect4Board where
   show board =
-    unlines [concat [showSquare (getSquare (x, y) (squares board)) | x <- xrange] | y <- reverse yrange] ++
-    "Player " ++ (show $ player board) ++ " to move."
+    unlines [concat [showSquare (getSquare (x, y) (squares board)) | x <- xrange] | y <- reverse yrange]
+    ++ (concat $ map show (range width))
+    ++ "\nPlayer " ++ (show $ player board) ++ " to move."
 

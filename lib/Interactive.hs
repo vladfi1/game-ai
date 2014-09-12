@@ -24,7 +24,6 @@ humanPlayer board = do
   return $ acts !! index
 
 n = 2000
-m = 1
 
 think board = evalRand (UCT.uct n Game.playOutEvalR board) (mkStdGen 0)
 
