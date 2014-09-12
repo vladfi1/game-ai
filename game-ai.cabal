@@ -33,6 +33,6 @@ executable test
   main-is:             Test.hs
   hs-source-dirs:      test
   build-depends:       base, game-ai
-  ghc-options:         -fprof-auto -fprof-cafs -rtsopts -O2
+  ghc-options:         -fprof-auto -rtsopts -O2
   default-language:    Haskell2010
   

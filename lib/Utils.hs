@@ -11,6 +11,8 @@ import qualified Data.IntMap as IntMap
 import Data.Map (Map)
 import qualified Data.Map as Map
 
+import Control.Monad ((>=>))
+
 import qualified Numeric
 
 decimals n f = Numeric.showFFloat (Just n) f ""
@@ -22,9 +24,12 @@ maximumByKey :: Ord b => (a -> b) -> [a] -> a
 maximumByKey key = maximumBy (comparing key)
 
 iterateN :: Int -> (a -> a) -> a -> a
-iterateN n f a =
-  if (n == 0) then a else
-    iterateN (n-1) f (f a)
+iterateN 0 _ a = a
+iterateN n f a = iterateN (n-1) f (f a)
+
+iterateM :: (Monad m) => Int -> (a -> m a) -> a -> m a
+iterateM 0 _ = return
+iterateM n f = (iterateM (n-1) f) >=> f
 
 range len = [0..len-1]
 

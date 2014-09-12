@@ -7,6 +7,7 @@ import qualified UCT
 import Utils (inRange, decimals)
 
 import Control.Monad.State
+import Control.Monad.Random
 
 pick max = do
   print $ "Enter an integer in [0, " ++ (show max) ++ ")"
@@ -25,13 +26,10 @@ humanPlayer board = do
 n = 2000
 m = 1
 
---heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
-heuristic :: Game a s => Heuristic a s
---heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
-heuristic = (Game.playOutEvalPR $ const 0)
+think board = evalRand (UCT.uct n Game.playOutEvalR board) (mkStdGen 0)
 
 cpuPlayer board = do
-  let node = UCT.uct n heuristic board
+  let node = think board
   print $ map ((decimals 2) . ($ UCT.agent node) . UCT.winRatio) (UCT.listChildren node)
   print $ map UCT.getVisits (UCT.listChildren node)
   return $ UCT.state $ UCT.bestChild node

@@ -5,13 +5,13 @@ import UCT
 import qualified Game
 import Connect4 (newGame)
 import qualified Utils
+import Interactive (think)
 
 n = 1000
 m = 1
 
-strat = uct n (Game.playOutEvalPR $ const 0)
 play state = 
-  let node = strat state in
+  let node = think state in
   (state, node) : if Game.terminal state then []
     else play (UCT.state $ UCT.bestChild node)
 

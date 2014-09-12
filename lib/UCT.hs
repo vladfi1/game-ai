@@ -13,6 +13,8 @@ import Data.Maybe (catMaybes)
 
 import Data.Monoid (Monoid, mempty, mappend, (<>), mconcat)
 
+import Control.Monad ((>=>))
+
 import Utils (listToIntMap, maximumByKey, iterateN, toVector, fromVector)
 
 import MCTS
@@ -55,14 +57,14 @@ sumNodes = mconcat . (map value)
 sumChildren :: (Monoid v) => Tree s v -> v
 sumChildren = sumNodes . listChildren
 
-strategy :: (Game a s, Bounded a, Enum a) => Strategy s (Stats a)
+strategy :: (Game a s, Bounded a, Enum a, Monad m) => Strategy s m (Stats a)
 strategy = Strategy {
   heuristic = undefined,
-  pick = fst . ucb,
+  pick = return . fst . ucb,
   terminal = increment,
   incorporate = sumNodes,
   update = \node _ -> sumChildren node
 }
 
 --uct :: (Game a s) => Int -> Heuristic a s -> s -> Node a s
-uct n heuristic = mcts strategy {heuristic = toStats . heuristic} n
+uct n heuristic = mcts strategy {heuristic = heuristic >=> (return . toStats)} n
