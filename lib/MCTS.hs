@@ -1,3 +1,5 @@
+{-# LANGUAGE NamedFieldPuns #-}
+
 module MCTS where
 
 import Game (Game, Heuristic)
@@ -10,15 +12,19 @@ import Data.Maybe (catMaybes)
 
 import Utils (listToIntMap, iterateN)
 
-data Node s v = Node {
-    state     :: s,
+data Tree s v =
+  Node {
+    state    :: s,
 --    terminal :: Bool,
 --    agent    :: a,
     value    :: v,
-    children :: IntMap (Node s v)
+    children :: IntMap (Tree s v)
+  } | Leaf {
+    state :: s,
+    value :: v
   }
 
-agent :: Game a s => Node s v -> a
+agent :: Game a s => Tree s v -> a
 agent node = Game.agent $ state node
 
 listChildren = IntMap.elems . children
@@ -27,32 +33,43 @@ getChild node n = (children node) IntMap.! n
 --bestChild :: Ord v 
 --bestChild node = maximumByKey (\child -> (getValue child) (agent node)) (listChildren node)
 
-initNode heuristic state =
-  Node {
+initLeaf heuristic state =
+  Leaf {
     state = state,
---    terminal = Game.terminal state
---    agent = Game.agent state,
-    value = heuristic state,
-    children = listToIntMap $ map (initNode heuristic) (Game.actions state)
+    value = heuristic state
+  }
+
+initChildren heuristic state = map (initLeaf heuristic) (Game.actions state)
+
+initNode strategy state = let
+  children = initChildren (heuristic strategy) state
+  in Node {
+    state = state,
+    value = incorporate strategy children,
+    children = listToIntMap children
   }
 
 data Strategy s v = Strategy {
-  pick        :: Node s v -> Int,
-  terminal    :: Node s v -> Node s v,
-  incorporate :: Node s v -> Int -> v
+  heuristic   :: s -> v,
+  pick        :: Tree s v -> Int,
+  terminal    :: Tree s v -> Tree s v,
+  incorporate :: [Tree s v] -> v,
+  update      :: Tree s v -> Int -> v
 }
 
-explore :: Game a s => Strategy s v -> Node s v -> Node s v
-explore strategy node
-  | Game.terminal (state node) = terminal strategy node
-  | otherwise = let
-      oldChildren = (children node)
-      index = pick strategy node
-      newChildren = IntMap.adjust (explore strategy) index oldChildren
-      node' = node {children = newChildren}
-      newValue = (incorporate strategy) node' index
-    in node' {value = newValue}
+explore :: Game a s => Strategy s v -> Tree s v -> Tree s v
 
-mcts :: (Game a s) => Strategy s v -> Int -> (s -> v) -> s -> Node s v
-mcts strategy n heuristic = (iterateN n $ explore strategy) . (initNode heuristic)
+explore strategy leaf @ Leaf {state}
+  | Game.terminal state = terminal strategy leaf
+  | otherwise = initNode strategy state
+
+explore strategy node @ Node {state, value, children} = let
+    index = pick strategy node
+    newChildren = IntMap.adjust (explore strategy) index children
+    node' = node {children = newChildren}
+    newValue = update strategy node' index
+  in node' {value = newValue}
+
+mcts :: (Game a s) => Strategy s v -> Int -> s -> Tree s v
+mcts strategy n = (iterateN n $ explore strategy) . (initLeaf (heuristic strategy))
 

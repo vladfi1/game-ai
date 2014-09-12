@@ -9,8 +9,7 @@ import qualified Utils
 n = 1000
 m = 1
 
---strat = uct n (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
-strat = uct n (Game.lookAheadEvalDepth m Game.evaluate)
+strat = uct n (Game.playOutEvalPR $ const 0)
 play state = 
   let node = strat state in
   (state, node) : if Game.terminal state then []

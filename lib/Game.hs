@@ -58,9 +58,11 @@ playOutEvalM play state = do
 randomPlayer :: (MonadRandom m, Game a s) => s -> m s
 randomPlayer state = do
   let states = actions state
-  index <- getRandomR (0, length states + 1)
+  index <- getRandomR (0, length states - 1)
   return $ states !! index
 
 playOutEvalR :: (MonadRandom m, Game a s) => s -> m (a -> Double)
 playOutEvalR = playOutEvalM randomPlayer
 
+playOutEvalPR :: (Game a s) => (s -> Int) -> s -> a -> Double
+playOutEvalPR hash state = evalRand (playOutEvalR state) (mkStdGen $ hash state)

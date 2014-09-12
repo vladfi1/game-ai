@@ -49,15 +49,20 @@ increment node = node {
   value = (value node) <> (toStats $ winRatio node)
 }
 
-sumChildren node =
-  mconcat $ map value (listChildren node)
+sumNodes :: (Monoid v) => [Tree s v] -> v
+sumNodes = mconcat . (map value)
+
+sumChildren :: (Monoid v) => Tree s v -> v
+sumChildren = sumNodes . listChildren
 
 strategy :: (Game a s, Bounded a, Enum a) => Strategy s (Stats a)
 strategy = Strategy {
+  heuristic = undefined,
   pick = fst . ucb,
   terminal = increment,
-  incorporate = \node _ -> sumChildren node
+  incorporate = sumNodes,
+  update = \node _ -> sumChildren node
 }
 
 --uct :: (Game a s) => Int -> Heuristic a s -> s -> Node a s
-uct n heuristic = mcts strategy n (toStats . heuristic)
+uct n heuristic = mcts strategy {heuristic = toStats . heuristic} n

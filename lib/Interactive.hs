@@ -27,7 +27,8 @@ m = 1
 
 --heuristic = (Game.playOutEval (Game.lookAheadPlayDepth m Game.evaluate))
 heuristic :: Game a s => Heuristic a s
-heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
+--heuristic = (Game.lookAheadEvalDepth m Game.evaluate)
+heuristic = (Game.playOutEvalPR $ const 0)
 
 cpuPlayer board = do
   let node = UCT.uct n heuristic board
