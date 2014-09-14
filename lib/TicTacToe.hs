@@ -1,26 +1,17 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module TicTacToe where
+module TicTacToe (module TicTacToe, module TwoPlayer) where
 
 import Data.Map (Map)
 import qualified Data.Map as Map
 
 import Data.Vector ((!))
 
+import TwoPlayer
 import Game (Game, agent, terminal, actions, evaluate)
 
 import Utils (allValues, mem)
-
-data Player = X | O
-  deriving (Show, Eq, Ord, Enum, Bounded)
-
-allPlayers :: [Player]
-allPlayers = allValues
-
-other :: Player -> Player
-other X = O
-other O = X
 
 type TicTacToeBoard = Map (Int, Int) Player
 

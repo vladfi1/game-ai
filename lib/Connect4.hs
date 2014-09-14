@@ -1,7 +1,7 @@
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module Connect4 where
+module Connect4 (module Connect4, module TwoPlayer) where
 
 import Prelude hiding ((+), (-), (*), sum, negate)
 import NumericPrelude
@@ -17,22 +17,13 @@ import qualified Data.Vector as Vector
 
 import Data.Maybe (catMaybes, isJust)
 
+import TwoPlayer
 import Game (Game, agent, terminal, actions, evaluate)
 
 import Utils (allValues, range, listToIntMap, enumerate)
 import qualified Utils
 
 import Control.Monad.State
-
-data Player = X | O
-  deriving (Show, Eq, Ord, Enum, Bounded)
-
-allPlayers :: [Player]
-allPlayers = allValues
-
-other :: Player -> Player
-other X = O
-other O = X
 
 type Square = (Int, Int)
 type Column = IntMap Player
