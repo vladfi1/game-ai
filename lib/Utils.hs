@@ -51,6 +51,9 @@ fromVector v = (v Vector.!) . fromEnum
 mem :: (Bounded a, Enum a) => (a -> b) -> (a -> b)
 mem = fromVector . toVector
 
+fromMap :: (Ord k) => Map k a -> k -> a
+fromMap = (Map.!)
+
 invert :: (Ord b) => [(a, [b])] -> [(b, [a])]
 invert packed =
   let unpacked = concat [[(a, b) | b <- bs] | (a, bs) <- packed]
