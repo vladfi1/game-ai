@@ -2,7 +2,7 @@ import qualified Interactive
 import Interactive (humanPlayer, cpuPlayer)
 import Connect4 (newGame, Player(..))
 
-players X = cpuPlayer
-players O = humanPlayer
+players O = cpuPlayer
+players X = humanPlayer
 
 main = Interactive.main players newGame
