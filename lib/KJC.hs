@@ -1,7 +1,7 @@
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module KJC where
+module KJC (module KJC, module TwoPlayer) where
 
 import TwoPlayer
 
