@@ -3,15 +3,14 @@ module Main where
 import qualified UCT
 import UCT
 import qualified Game
-import Connect4 (newGame)
+import KJC (newGame)
 import qualified Utils
 import Interactive (think)
 
-n = 1000
-m = 1
+n = 10
 
 play state = 
-  let node = think state in
+  let node = think n state in
   (state, node) : if Game.terminal state then []
     else play (UCT.state $ UCT.bestChild node)
 
