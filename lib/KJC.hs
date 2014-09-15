@@ -24,8 +24,10 @@ import Debug.Trace
 import Grid (Square)
 import qualified Grid
 import qualified Utils
-
 import Game (Game, agent, terminal, actions, evaluate)
+import TwoPlayer
+
+import System.Console.ANSI
 
 width = 6
 height = 6
@@ -43,7 +45,7 @@ data KJCState = KJCState {
 --  total :: Int,
   player :: Player,
   values :: Map Square Int,
---  owners :: Map Square Player,
+  owners :: Map Square Player,
 --  owned  :: Vector (Set Square),
   owned  :: Player -> (Set Square),
   winner :: Maybe Player
@@ -53,7 +55,7 @@ newGame = KJCState {
 --  total = 0,
   player = X,
   values = Map.fromList [(square, 0) | square <- squares],
---  owners = Map.empty,
+  owners = Map.empty,
 --  owned  = Utils.toVector (const Set.empty),
   owned  = const Set.empty,
   winner = Nothing
@@ -73,18 +75,19 @@ increment state @ KJCState {player} [] =
   check state $
   state {player = other player}
 
-increment state @ KJCState {player, values, owned} (next:rest) =
+increment state @ KJCState {player, values, owners, owned} (next:rest) =
   check state $
   let value = values Map.! next + 1
-      owned' = assign player next owned
+      state' = state {
+        owners = Map.insert next player owners,
+        owned = assign player next owned
+      }
   in if value == degrees next
-    then increment state {
-      values = Map.insert next 0 values,
-      owned = owned'
+    then increment state' {
+      values = Map.insert next 0 values
     } (neighbors next ++ rest)
-    else increment state {
-      values = Map.insert next value values,
-      owned = owned'
+    else increment state' {
+      values = Map.insert next value values
     } rest
 
 play state square = increment state [square]
@@ -100,7 +103,12 @@ instance Game Player KJCState where
   evaluate state = fromIntegral . Set.size . (owned state)
 
 instance Show KJCState where
-  show KJCState {player, values} =
-    unlines [concat [show $ values Map.! (x, y) | x <- xrange] | y <- reverse yrange]
+  show KJCState {player, values, owners} =
+    unlines [(concat [toString (x, y) | x <- xrange]) ++ reset | y <- reverse yrange]
     ++ "Player " ++ (show $ player) ++ " to move."
-  
+    where reset = setSGRCode []
+          toString square = (colorCode square) ++ (show $ values Map.! square)
+          colorCode square = setSGRCode [SetColor Background Vivid (getColor $ Map.lookup square owners)]
+          getColor (Just X) = Red
+          getColor (Just O) = Blue
+          getColor Nothing = White

@@ -23,12 +23,12 @@ humanPlayer board = do
   index <- pick (length acts)
   return $ acts !! index
 
-n = 2000
+think m board = evalRand (UCT.uct m Game.playOutEvalR board) (mkStdGen 0)
 
-think board = evalRand (UCT.uct n Game.playOutEvalR board) (mkStdGen 0)
+n = 20
 
 cpuPlayer board = do
-  let node = think board
+  let node = think n board
   print $ map ((decimals 2) . ($ UCT.agent node) . UCT.winRatio) (UCT.listChildren node)
   print $ map UCT.getVisits (UCT.listChildren node)
   return $ UCT.state $ UCT.bestChild node
