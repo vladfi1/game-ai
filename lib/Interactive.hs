@@ -25,7 +25,7 @@ humanPlayer board = do
 
 think m board = evalRand (UCT.uct m Game.playOutEvalR board) (mkStdGen 0)
 
-n = 20
+n = 50
 
 cpuPlayer board = do
   let node = think n board

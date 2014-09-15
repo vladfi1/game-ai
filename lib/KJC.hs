@@ -112,3 +112,18 @@ instance Show KJCState where
           getColor (Just X) = Red
           getColor (Just O) = Blue
           getColor Nothing = White
+
+readSquare legal = do
+  putStrLn "Enter a pair:"
+  line <- getLine
+  let [x, y] = map read (words line)
+  let square = (x, y)
+  if Set.member square legal
+    then return square
+    else readSquare legal 
+
+humanPlayer :: KJCState -> IO KJCState
+humanPlayer state = do
+  print state
+  square <- readSquare $ Set.fromList (playable state)
+  return $ play state square

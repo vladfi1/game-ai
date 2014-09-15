@@ -1,6 +1,6 @@
 import qualified Interactive
-import Interactive (humanPlayer, cpuPlayer)
-import KJC (newGame, Player(..))
+import Interactive (cpuPlayer)
+import KJC (newGame, Player(..), humanPlayer)
 
 players O = cpuPlayer
 players X = humanPlayer
