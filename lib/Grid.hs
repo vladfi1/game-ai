@@ -17,8 +17,10 @@ type Delta = (Int, Int)
 deltas :: [Delta]
 deltas = [(1, 0), (0, 1), (1, 1), (1, -1)]
 
+cardinal = [(1, 0), (0, 1), (-1, 0), (0, -1)]
+
 adjacent :: Square -> [Square]
-adjacent square = map (square +) deltas
+adjacent square = map (square +) cardinal
 
 isValid :: (Int, Int) -> Square -> Bool
 isValid (width, height) (x, y) = inRange (0, width) x && inRange (0, height) y
