@@ -16,10 +16,15 @@ setup window = do
     return window # set title "Threes js"
 
     canvas <- UI.canvas
-        # set UI.height 1000
-        # set UI.width  1000
+        # set UI.height 500
+        # set UI.width  500
 
-    getBody window #+ [element canvas]
+    customJS <- UI.button #+ [string "Custom Js"]
+    getBody window #+ [element canvas, element customJS]
+
+    uri <- loadFile "text/javascript" "test.js"
+    on UI.click customJS  $ const $ callFunction $ trampoline uri
+
 
     let squareSize = 100
     let rects = buildGrid 1 2 squareSize
@@ -32,8 +37,30 @@ setup window = do
           UI.fillText text (x + squareSize/3, y + squareSize/2) canvas
 
     forM_ rects drawRect
+    callFunction $ ffi  trampolineCode uri
 
 
+trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
+  "xhr.open('GET', %1, true)",
+  "xhr.onreadystatechange= function() {",
+  "if (this.readyState!=4) {",
+  "console.log('readyState = ' + this.readyState)",
+  "return",
+  "}",
+  "if (this.status!=200) {",
+  "return",
+  "}",
+  "",
+  "var head= document.getElementsByTagName('head')[0];",
+  "var script= document.createElement('script');",
+  "script.type= 'text/javascript';",
+  "console.log('got here ' + this.responseText);",
+  "script.innerHTML = this.responseText",
+  "head.appendChild(script);",
+  "}",
+  "xhr.send()"]
+trampoline :: String -> JSFunction String
+trampoline = ffi $ trampolineCode
 
 buildGrid :: Double -> Double -> Double -> [(Double, Double, Double, Double, String, String)]
 buildGrid nrows ncols size= [ (0, 0, size, size, "red", "1"),
