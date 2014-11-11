@@ -2,7 +2,7 @@ module Utils where
 
 import Data.List (maximumBy)
 import Data.Ord (comparing)
-import Data.Vector (Vector)
+import Data.Vector (Vector, (//))
 import qualified Data.Vector as Vector
 
 import Data.IntMap (IntMap)
@@ -41,6 +41,9 @@ listToIntMap list = IntMap.fromList (enumerate list)
 
 allValues :: (Bounded a, Enum a) => [a]
 allValues = [minBound .. ]
+
+modify :: Vector a -> [(Int, a -> a)] -> Vector a
+modify vec ifs = vec // [(i, f (vec Vector.! i)) | (i, f) <- ifs]
 
 toVector :: (Bounded a, Enum a) => (a -> b) -> Vector b
 toVector f = Vector.fromList $ map f allValues
