@@ -12,6 +12,7 @@ type Heuristic a s = s -> a -> Double
 class Game a s | s -> a where
   agent :: s -> a
   actions :: s -> [s]
+  moves :: s -> [(s, Rational)]
   terminal :: s -> Bool
   evaluate :: Heuristic a s
 
