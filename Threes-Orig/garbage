@@ -1,0 +1,60 @@
+var makeButtonPresser = function(keycode) {
+  var keyboardDownEvent = document.createEvent("KeyboardEvent");
+  var keyboardUpEvent = document.createEvent("KeyboardEvent");
+  var keyboardPressEvent = document.createEvent("KeyboardEvent");
+  var initMethod = typeof keyboardDownEvent.initKeyboardEvent !== 'undefined' ? "initKeyboardEvent" : "initKeyEvent";
+  keyboardDownEvent[initMethod](
+                     "keydown", // event type : keydown, keyup, keypress
+                      true, // bubbles
+                      true, // cancelable
+                      window, // viewArg: should be window
+                      false, // ctrlKeyArg
+                      false, // altKeyArg
+                      false, // shiftKeyArg
+                      false, // metaKeyArg
+                      keycode, // keyCodeArg : unsigned long the virtual key code, else 0
+                      0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+  );
+
+  keyboardUpEvent[initMethod](
+                     "keyup", // event type : keydown, keyup, keypress
+                      true, // bubbles
+                      true, // cancelable
+                      window, // viewArg: should be window
+                      false, // ctrlKeyArg
+                      false, // altKeyArg
+                      false, // shiftKeyArg
+                      false, // metaKeyArg
+                      keycode, // keyCodeArg : unsigned long the virtual key code, else 0
+                      0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+  );
+
+  keyboardPressEvent[initMethod](
+                     "keypress", // event type : keydown, keyup, keypress
+                      true, // bubbles
+                      true, // cancelable
+                      window, // viewArg: should be window
+                      false, // ctrlKeyArg
+                      false, // altKeyArg
+                      false, // shiftKeyArg
+                      false, // metaKeyArg
+                      keycode, // keyCodeArg : unsigned long the virtual key code, else 0
+                      0 // charCodeArgs : unsigned long the Unicode character associated with the depressed key, else 0
+  );
+  var presser = function() {
+    document.dispatchEvent(keyboardDownEvent);
+    document.dispatchEvent(keyboardPressEvent);
+    document.dispatchEvent(keyboardUpEvent);
+
+    document.body.dispatchEvent(keyboardDownEvent);
+    document.body.dispatchEvent(keyboardPressEvent);
+    document.body.dispatchEvent(keyboardUpEvent);
+  }
+  return presser;
+}
+
+var left  = makeButtonPresser(37);
+var up    = makeButtonPresser(38);
+var right = makeButtonPresser(39);
+var down  = makeButtonPresser(40);
+
