@@ -21,9 +21,12 @@ setup window = do
 
     customJS <- UI.button #+ [string "Custom Js"]
     getBody window #+ [element canvas, element customJS]
+    
+    diruri <- loadDirectory "Threes-Orig"
+    customJSuri <- loadFile "text/javascript" "custom.js"
+    
+    --on UI.click customJS  $ const $ callFunction $ trampoline customJSuri
 
-    uri <- loadFile "text/javascript" "custom.js"
-    on UI.click customJS  $ const $ callFunction $ trampoline uri
 
 
     let squareSize = 100
@@ -37,11 +40,12 @@ setup window = do
           UI.fillText text (x + squareSize/3, y + squareSize/2) canvas
 
     forM_ rects drawRect
-    callFunction $ ffi  trampolineCode uri
+    callFunction $ ffi trampolineCode customJSuri (diruri ++ "/index.html") 
 
 
 trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
   "xhr.open('GET', %1, true)",
+  "console.log(%1)",
   "xhr.onreadystatechange= function() {",
   "if (this.readyState!=4) {",
   "console.log('readyState = ' + this.readyState)",
@@ -54,12 +58,13 @@ trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
   "var head= document.getElementsByTagName('head')[0];",
   "var script= document.createElement('script');",
   "script.type= 'text/javascript';",
-  "console.log('got here ' + this.responseText);",
-  "script.innerHTML = this.responseText",
+  "script.innerHTML = this.responseText;",
   "head.appendChild(script);",
   "}",
+  "window.onLoad = function() {loadThrees(%2);};",
   "xhr.send()"]
-trampoline :: String -> JSFunction String
+
+trampoline :: String -> String -> JSFunction String --customJSUrl -> index.html
 trampoline = ffi $ trampolineCode
 
 buildGrid :: Double -> Double -> Double -> [(Double, Double, Double, Double, String, String)]
