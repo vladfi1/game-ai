@@ -22,7 +22,7 @@ setup window = do
     customJS <- UI.button #+ [string "Custom Js"]
     getBody window #+ [element canvas, element customJS]
 
-    uri <- loadFile "text/javascript" "test.js"
+    uri <- loadFile "text/javascript" "custom.js"
     on UI.click customJS  $ const $ callFunction $ trampoline uri
 
 
