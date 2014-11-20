@@ -1,8 +1,10 @@
+--{-# LANGUAGE NoMonomorphismRestriction #-}
+
 module Threes where
 
 import Prelude hiding (Left, Right)
 
-import Data.Vector (Vector, (!), (//))
+import Data.Vector (Vector, (!), (//), indexed)
 import qualified Data.Vector as Vector
 
 import Data.Matrix hiding ((!))
@@ -11,6 +13,7 @@ import qualified Data.Matrix as Matrix
 import qualified Control.Monad.Random as Random
 
 import Utils (range, enumerate)
+import Discrete
 
 type Tile = Int
 type Row = Vector Tile
@@ -67,33 +70,41 @@ reassemble dir rows = let
   transposed = if transposes dir then transpose mat else mat
   in transposed
 
-type ThreesDir = Grid
-data ThreesLoc = ThreesLoc Direction [Int] [Row]
-
-pushGrid :: Direction -> Grid -> ThreesLoc
-pushGrid dir grid = ThreesLoc dir open pushed
+pushGrid :: Direction -> Grid -> ([Row], [Int])
+pushGrid dir grid = (pushed, open)
   where rows = disassemble dir grid
-        push (i, row) (is, rs) = case pushRow row of
-          Nothing -> (is, row : rs)
-          Just r -> (i : is, r : rs)
+        push (i, row) (is, rs) =
+          case pushRow row of
+            Nothing -> (is, row : rs)
+            Just r -> (i : is, r : rs)
         (open, pushed) = foldr push ([], []) (enumerate rows)
 
-data ThreesNum = ThreesNum Direction Int Row
-
-pickLoc :: (MonadRandom m) => ThreesLoc -> m ThreesNum
-pickLoc ThreesLoc dir is rows = do
-  i 
-
-
 type RNG = Vector Int
-
 newRNG = Vector.fromList [10, 10]
 
-pick1or2 :: (MonadRandom m) => RNG -> m (RNG, Tile)
+pick1or2 :: (Num w, MonadDiscrete w m) => RNG -> m (RNG, Tile)
 pick1or2 rng = do
-  let weights = Vector.toList (indexed rng)
-  index <- Random.fromList weights
-  let rng' = rng // (index, (rng ! index) - 1)
+  let weights = enumerate . (map fromIntegral) $ Vector.toList rng
+  index <- sample weights
+  let rng' = rng // [(index, (rng ! index) - 1)]
   let rng'' = if Vector.sum rng' == 0 then newRNG else rng'
   return (rng'', index + 1)
+
+data ThreesState =
+  ThreesDir {
+    grid :: Grid,
+    nextTile :: Tile,
+    rng :: RNG
+  } |
+  ThreesLoc {
+    direction :: Direction,
+    rows :: [Row],
+    open :: [Int],
+    nextTile :: Tile,
+    rng :: RNG
+  } |
+  ThreesNum {
+    grid :: Grid,
+    rng :: RNG
+  }
 

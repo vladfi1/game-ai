@@ -6,13 +6,14 @@ module Game where
 import Control.Monad.Random
 
 import Utils (maximumByKey, iterateN)
+import Discrete
 
 type Heuristic a s = s -> a -> Double
 
 class Game a s | s -> a where
   agent :: s -> a
   actions :: s -> [s]
-  moves :: s -> [(s, Rational)]
+  nature :: (MonadDiscrete w m) => s -> m s
   terminal :: s -> Bool
   evaluate :: Heuristic a s
 

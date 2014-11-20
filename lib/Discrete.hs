@@ -1,98 +1,84 @@
---{-# LANGUAGE Rank2Types #-}
+{-# LANGUAGE MultiParamTypeClasses, FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE FunctionalDependencies, TypeFamilies #-}
---{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE TupleSections #-}
+{-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module Discrete where
 
+import NumericPrelude hiding (foldr1)
+import qualified Algebra.Ring as Ring
+import qualified Algebra.Module as Module
+import qualified Algebra.Field as Field
+import qualified Prelude
+
 import Control.Lens
 
-import Control.Monad.Random (Rand, MonadRandom, fromList)
+import Data.Functor.Compose
+import Data.Foldable
+import Data.Traversable
+import Data.Monoid
+
+import Monad2
+
+import Control.Monad.Random (Rand)
+import qualified Control.Monad.Random as Random
 import System.Random (RandomGen)
 
-newtype Weighted w a = Weighted { asPair :: (a, w) } deriving (Show)
-newtype Discrete w a = Discrete { asList :: [Weighted w a] } deriving (Show)
+newtype Weighted w a = Weighted { asPair :: (a, w) }
 
-toWeightedList = (map asPair) . asList
-fromWeightedList = Discrete . (map Weighted)
-
-modA f = Weighted . (_1 %~ f) . asPair
-modW f = Weighted . (_2 %~ f) . asPair
+instance (Show w, Show a) => Show (Weighted w a) where
+  show = show . asPair
 
 instance Functor (Weighted w) where
-  fmap = modA
+  fmap f = Weighted . (_1 %~ f) . asPair
 
--- Monad defined in terms of fmap and join
-class (Functor m) => Monad' m where
-  return' :: a -> m a
-  join' :: m (m a) -> m a
+instance (Ring.C w) => Monad' (Weighted w) where
+  return' a = Weighted (a, Ring.one)
+  join' (Weighted (Weighted (a, w0), w1)) = Weighted (a, w0 * w1)
 
--- Monad' is a Monad
--- but this causes undecidable instances :(
---instance (Monad' m) => Monad m where
---  return = return'
---  ma >>= f = join' $ fmap f ma
-
-instance (Num w) => Monad' (Weighted w) where
-  return' a = Weighted (a, 1)
-  join' (Weighted (Weighted (a, w1), w0)) = Weighted (a, w1 * w0)
-
--- this is the same for all monads
-instance (Num w) => Monad (Weighted w) where
+-- standard
+instance (Ring.C w) => Monad (Weighted w) where
   return = return'
-  ma >>= f = join' $ fmap f ma
+  wa >>= f = join' (fmap f wa)
 
-instance Functor (Discrete w) where
-  fmap f = Discrete . (fmap (fmap f)) . asList
+instance Foldable (Weighted w) where
+  foldMap f (Weighted (a, _)) = f a
 
-reWeight :: (Num w) => (Weighted w (Discrete w a)) -> Discrete w a
-reWeight (Weighted (Discrete aws, w0)) = Discrete $ map (modW (* w0)) aws
+instance Traversable (Weighted w) where
+  sequenceA (Weighted (as, w)) = fmap (Weighted . (, w)) as
 
-instance (Num w) => Monad' (Discrete w) where
-  return' a = Discrete [return a]
-  join' (Discrete aws) = Discrete . concat $ map (asList . reWeight) aws
+type Discrete w = Compose [] (Weighted w)
 
--- this is the same for all monads
-instance (Num w) => Monad (Discrete w) where
-  return = return'
-  ma >>= f = join' $ fmap f ma
+fromList :: [(a, w)] -> Discrete w a
+fromList = Compose . (map Weighted)
 
-class (Num w, Monad m) => MonadDiscrete w m | m -> w where
+toList :: Discrete w a -> [(a, w)]
+toList = (map asPair) . getCompose
+
+(<*) = flip (*>)
+
+expectation :: (Module.C w a) => Discrete w a -> a
+expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
+
+--instance (Show w, Show a) => Show (Discrete w a) where
+--  show = show . getCompose
+
+class (Field.C w, Monad m) => MonadDiscrete w m | m -> w where
   sample :: [(a, w)] -> m a
-  --sample :: Discrete w a -> m a
+  uniform :: [a] -> m a
+  uniform as = sample [(a, w) | a <- as]
+    where w = one / fromIntegral (length as)
 
---class (Monad m) => MonadDiscrete m where
-  --data Weight m :: *
-  --type Weight m
-  --sample :: [(a, Weight m)] -> m a
+instance (RandomGen g) => MonadDiscrete Prelude.Rational (Rand g) where
+  sample = Random.fromList
+  uniform = Random.uniform
 
-
---instance (MonadRandom m) => MonadDiscrete m where
---instance (MonadRandom m) => MonadDiscrete Rational m where
-  --type Weight m = Rational
-  --sample = fromList . toWeightedList
-  --sample = fromList
-
-instance RandomGen g => MonadDiscrete Rational (Rand g) where
+instance (Field.C w) => MonadDiscrete w (Discrete w) where
   sample = fromList
 
-instance (Num w) => MonadDiscrete w (Discrete w) where
---instance (Fractional w) => MonadDiscrete w (Discrete w) where
---instance MonadDiscrete Double (Discrete Double) where
-  --type Weight (Discrete w) = w
-  --data Weight (Discrete w) = Weight w
-  sample = fromWeightedList
-  --sample = id
-
-test1 :: (Monad m) => m String
-test1 = return "x"
-
-test2 :: (Num w, MonadDiscrete w m) => m String
-test2 = sample [("x", 1)]
-
-test3 :: Discrete Double Int
-test3 = do
+--test :: (MonadDiscrete w m) => m a
+test = do
   x <- sample [(True, 0.5), (False, 0.5)]
   y <- if x then (return 1) else sample [(1, 0.5), (2, 0.5)]
   return (y + 1)
