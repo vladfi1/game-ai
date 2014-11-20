@@ -19,7 +19,7 @@ import Data.Foldable
 import Data.Traversable
 import Data.Monoid
 
-import Monad2
+import MonadJoin
 
 import Control.Monad.Random (Rand)
 import qualified Control.Monad.Random as Random
@@ -40,7 +40,7 @@ instance (Ring.C w) => Monad' (Weighted w) where
 -- standard
 instance (Ring.C w) => Monad (Weighted w) where
   return = return'
-  wa >>= f = join' (fmap f wa)
+  (>>=) = bind'
 
 instance Foldable (Weighted w) where
   foldMap f (Weighted (a, _)) = f a

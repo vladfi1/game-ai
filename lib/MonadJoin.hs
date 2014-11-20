@@ -3,7 +3,7 @@
 
 --{-# LANGUAGE RankNTypes, TypeFamilies #-}
 
-module Monad2 where
+module MonadJoin where
 
 import Prelude hiding (sequence)
 
@@ -25,7 +25,7 @@ instance (Monad m, Monad' m, Monad n, Monad' n, Traversable n) => Monad' (Compos
 -- standard
 instance (Monad m, Monad' m, Monad n, Monad' n, Traversable n) => Monad (Compose m n) where
   return = return'
-  ma >>= f = join' (fmap f ma)
+  (>>=) = bind'
 
 -- standard
 instance Monad' [] where
