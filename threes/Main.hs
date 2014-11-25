@@ -14,8 +14,6 @@ player game @ Player {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-player Nature {nature} = do
-  stdGen <- getStdGen
-  return $ evalRand nature stdGen
+player Nature {nature} = evalRandIO nature
 
 main = playOutM player newGame
