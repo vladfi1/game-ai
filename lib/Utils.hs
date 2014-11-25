@@ -42,8 +42,13 @@ listToIntMap list = IntMap.fromList (enumerate list)
 allValues :: (Bounded a, Enum a) => [a]
 allValues = [minBound .. ]
 
-modify :: Vector a -> [(Int, a -> a)] -> Vector a
-modify vec ifs = vec // [(i, f (vec Vector.! i)) | (i, f) <- ifs]
+modifyList :: Int -> (a -> a) -> [a] -> [a]
+modifyList _ _ [] = error "Can't update empty list!"
+modifyList 0 f (a:as) = (f a):as
+modifyList n f (a:as) = a : modifyList (n-1) f as
+
+modifyVector :: Vector a -> [(Int, a -> a)] -> Vector a
+modifyVector vec ifs = vec // [(i, f (vec Vector.! i)) | (i, f) <- ifs]
 
 toVector :: (Bounded a, Enum a) => (a -> b) -> Vector b
 toVector f = Vector.fromList $ map f allValues

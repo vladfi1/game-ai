@@ -24,6 +24,10 @@ import MonadJoin
 import Control.Monad.Random (Rand)
 import qualified Control.Monad.Random as Random
 import System.Random (RandomGen)
+import Control.Monad (liftM)
+
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 newtype Weighted w a = Weighted { asPair :: (a, w) }
 
@@ -74,8 +78,25 @@ instance (RandomGen g) => MonadDiscrete Prelude.Rational (Rand g) where
   sample = Random.fromList
   uniform = Random.uniform
 
-instance (Field.C w) => MonadDiscrete w (Discrete w) where
-  sample = fromList
+
+dropZeros = filter $ (/= zero) . snd
+
+instance (Eq w, Field.C w) => MonadDiscrete w (Discrete w) where
+  sample = fromList . dropZeros
+
+categorical = sample
+
+bernoulli :: (MonadDiscrete w m) => w -> m Bool
+bernoulli p = sample [(False, one-p), (True, p)]
+
+choose :: (Field.C w, MonadDiscrete w m) => Int -> [a] -> m [a]
+choose 0 _ = return []
+choose _ [] = error "Can't choose from empty set."
+choose k (a:as) = do
+  pick <- bernoulli $ (fromIntegral k) / (one + (fromIntegral $ length as))
+  if pick
+    then liftM (a :) (choose (k-1) as)
+    else choose k as
 
 --test :: (MonadDiscrete w m) => m a
 test = do
