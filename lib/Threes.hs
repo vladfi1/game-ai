@@ -174,3 +174,10 @@ threesToGame state @ ThreesNum {} =
     nature = liftM threesToGame (threesNum state)
   }
 
+instance Show ThreesState where
+  show ThreesDir {grid, nextTile} =
+    (show grid) ++ (show nextTile) ++ " is next.\n"
+
+newGrid = Matrix.fromLists [[3, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+newGame = threesToGame $ ThreesNum {grid = newGrid, rng = newRNG}
+
