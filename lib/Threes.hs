@@ -117,6 +117,7 @@ data ThreesState =
     rng :: RNG
   } |
   ThreesLoc {
+    grid :: Grid,
     direction :: Direction,
     rows :: [Row],
     open :: [Int],
@@ -132,6 +133,7 @@ threesDir :: ThreesState -> Direction -> Maybe ThreesState
 threesDir ThreesDir {grid, nextTile, rng} dir =
   if null open then Nothing else
     Just $ ThreesLoc {
+      grid = reassemble dir rows,
       direction = dir,
       rows = rows,
       open = open,
@@ -147,7 +149,8 @@ threesLoc ThreesLoc {direction, rows, open, nextTile, rng} = do
   return $ ThreesNum {grid, rng}
 
 threesNum ThreesNum {grid, rng} = do
-  (tile, rng') <- runStateT (pickTile 6) rng
+  let maxTile = maximum (Matrix.toList grid)
+  (tile, rng') <- runStateT (pickTile maxTile) rng
   return $ ThreesDir {
     grid = grid,
     nextTile = tile,
@@ -180,4 +183,20 @@ instance Show ThreesState where
 
 newGrid = Matrix.fromLists [[3, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 newGame = threesToGame $ ThreesNum {grid = newGrid, rng = newRNG}
+
+scoreTile :: Tile -> Int
+scoreTile n = n
+
+scoreGrid :: Grid -> Int
+scoreGrid grid = sum $ map scoreTile (Matrix.toList grid)
+
+countEmpty :: Grid -> Int
+countEmpty grid = sum $ map isZero (Matrix.toList grid)
+  where isZero 0 = 1
+        isZero _ = 0
+
+basicHeuristic :: GameState Player Direction ThreesState -> Player -> Double
+basicHeuristic game You =
+  fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
+  where g = grid $ state game
 

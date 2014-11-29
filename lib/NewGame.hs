@@ -19,6 +19,9 @@ data GameState a k s =
   Nature {state :: s, nature :: (Fractional w, MonadDiscrete w m) => m (GameState a k s) } |
   Player {state :: s, agent :: a, actions :: [(k, GameState a k s)]}
 
+isPlayer Player {} = True
+isPlayer _ = False
+
 instance (Show s, Show k, Show a) => Show (GameState a k s) where
   show Player {state, agent, actions} =
     (show agent) ++ " to move:\n" ++ (show state) ++ "Legal moves: " ++ (show $ map fst actions)
