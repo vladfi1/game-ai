@@ -2,6 +2,9 @@
 
 module Main where
 
+import Pipes
+import qualified Pipes.Prelude as P
+
 import Data.Functor
 import Control.Monad
 import Control.Monad.Random
@@ -17,15 +20,13 @@ humanPlayer game @ Player {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-naturePlayer Nature {nature} = evalRandIO nature
-
-cpuPlayer = return . (lookAheadPlayDepth 6 basicHeuristic)
+cpuPlayer = return . (lookAheadPlayDepth 8 basicHeuristic)
 
 makePlayer player game @ Player {} = player game
 makePlayer player game @ Nature {} = naturePlayer game
 
-main = playerStates >>= (flip forM $ print)
-  where states = playOutM (makePlayer cpuPlayer) newGame
-        playerStates = (filter isPlayer) <$> states
-        
+main = runEffect $
+  (playOutM (makePlayer cpuPlayer) newGame) >->
+  (P.filter isPlayer) >->
+  P.print
 

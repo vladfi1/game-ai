@@ -19,7 +19,7 @@ library
   exposed-modules:     UCT, Interactive, Connect4, TicTacToe, Game, Utils, MCTS, KJC, Grid, TwoPlayer, OnePlayer, Threes, MonadJoin, Discrete, NewGame, Instances
   -- other-modules:      
   other-extensions:    TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FunctionalDependencies
-  build-depends:       base >=4.6, containers >=0.5 && <0.6, vector >=0.10, matrix >=0.3, mtl >=2.1, numeric-prelude >=0.4, MonadRandom >=0.3, ansi-terminal >=0.5, lens >= 4.4, random >= 1.0, transformers >= 0.4
+  build-depends:       base >=4.6, containers >=0.5 && <0.6, vector >=0.10, matrix >=0.3, mtl >=2.1, numeric-prelude >=0.4, MonadRandom >=0.3, ansi-terminal >=0.5, lens >= 4.4, random >= 1.0, transformers >= 0.4, pipes >= 4.1
   hs-source-dirs:      lib
   default-language:    Haskell2010
 
@@ -38,7 +38,7 @@ executable kjc
 executable threes
   main-is:             Main.hs
   hs-source-dirs:      threes
-  build-depends:       base, game-ai, containers >=0.5, MonadRandom >= 0.3
+  build-depends:       base, game-ai, containers >=0.5, MonadRandom >= 0.3, pipes >= 4.1
   default-language:    Haskell2010
 
 executable test

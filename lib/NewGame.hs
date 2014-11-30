@@ -5,6 +5,8 @@
 
 module NewGame where
 
+import Pipes
+import qualified Pipes.Prelude as P
 --import Data.Monoid
 import qualified Control.Monad.Random as Random
 
@@ -59,14 +61,15 @@ lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuri
 --playOutEval :: Game a s => (s -> s) -> Heuristic a s
 --playOutEval play state = evaluate (finalState play state)
 
-playOutM :: (Monad m) => (GameState a k s -> m (GameState a k s)) -> GameState a k s -> m [GameState a k s]
+playOutM :: (Monad m) => (GameState a k s -> m (GameState a k s)) -> GameState a k s -> Producer (GameState a k s) m ()
 --playOutM play state@Terminal {} = return [state]
 playOutM play state
-  | terminal state = return [state]
+  | terminal state = yield state
   | otherwise = do
-      next <- play state
-      rest <- playOutM play next
-      return $ state : rest
+      yield state
+      next <- lift $ play state
+      playOutM play next
+
 {-
 playOutEvalM :: (Monad m) => (GameState a k s -> m (GameState a k s)) -> GameState a k s -> m (a -> Double)
 playOutEvalM play state = do
@@ -86,3 +89,6 @@ playOutEvalR = playOutEvalM randomPlayer
 playOutEvalPR :: (GameState a k s -> Int) -> Heuristic a s
 playOutEvalPR hash state = Random.evalRand (playOutEvalR state) (Random.mkStdGen $ hash state)
 --}
+
+naturePlayer Nature {nature} = Random.evalRandIO nature
+
