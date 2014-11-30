@@ -12,7 +12,7 @@ import qualified Algebra.Module as Module
 import qualified Algebra.Field as Field
 import qualified Prelude
 
-import Control.Lens
+--import Control.Lens
 
 import Data.Functor.Compose
 import Data.Foldable
@@ -36,10 +36,13 @@ instance (Show w, Show a) => Show (Weighted w a) where
   show = show . asPair
 
 instance Functor (Weighted w) where
-  fmap f = Weighted . (_1 %~ f) . asPair
+  --{-# INLINABLE fmap #-}
+  --fmap f = Weighted . (_1 %~ f) . asPair
+  fmap f (Weighted (a, w)) = Weighted (f a, w)
 
 instance (Ring.C w) => Monad' (Weighted w) where
   return' a = Weighted (a, Ring.one)
+  --{-# INLINABLE join' #-}
   join' (Weighted (Weighted (a, w0), w1)) = Weighted (a, w0 * w1)
 
 -- standard
@@ -56,7 +59,7 @@ instance Foldable (Weighted w) where
   foldMap f (Weighted (a, _)) = f a
 
 instance Traversable (Weighted w) where
-  {-# INLINABLE sequenceA #-}
+  --{-# INLINABLE sequenceA #-}
   sequenceA (Weighted (as, w)) = fmap (Weighted . (, w)) as
 
 type Discrete w = Compose [] (Weighted w)
