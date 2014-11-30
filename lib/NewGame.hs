@@ -35,7 +35,7 @@ type Heuristic a k s = GameState a k s -> a -> Double
 
 lookAheadEval :: forall a k s. Heuristic a k s -> Heuristic a k s
 lookAheadEval heuristic Nature {nature} = \a ->
-  expectation $ fmap (\state -> (heuristic state a)) (nature :: Discrete Double (GameState a k s))
+  expectation $ fmap (\state -> heuristic state a) (nature :: Discrete Double (GameState a k s))
 
 lookAheadEval heuristic state @ Player {agent, actions}
   | terminal state = heuristic state
