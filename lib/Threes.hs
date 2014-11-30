@@ -32,8 +32,8 @@ height = 4
 
 combines :: Tile -> Tile -> Bool
 combines 0 x = x /= 0
-combines 1 2 = True
-combines 2 1 = True
+combines 1 x = x == 2
+combines 2 x = x == 1
 combines x y = x == y
 
 pushIndex :: Row -> Maybe Int
