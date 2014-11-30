@@ -36,7 +36,7 @@ instance (Show w, Show a) => Show (Weighted w a) where
   show = show . asPair
 
 instance Functor (Weighted w) where
-  --{-# INLINABLE fmap #-}
+  {-# INLINABLE fmap #-}
   --fmap f = Weighted . (_1 %~ f) . asPair
   fmap f (Weighted (a, w)) = Weighted (f a, w)
 
@@ -75,6 +75,13 @@ toList = (map asPair) . getCompose
 --{-# INLINABLE expectation #-}
 expectation :: (Module.C w a) => Discrete w a -> a
 expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
+
+instance (Ring.C w) => Monad (Discrete w) where
+  return = return'
+  
+  (Compose []) >>= f = Compose []
+  (Compose ((Weighted (a, w)) : rest)) >>= f =
+    Compose $ [Weighted (b, w * w1) | Weighted (b, w1) <- getCompose (f a)] ++ getCompose (Compose rest >>= f)
 
 --instance (Show w, Show a) => Show (Discrete w a) where
 --  show = show . getCompose
