@@ -25,8 +25,10 @@ cpuPlayer = return . (lookAheadPlayDepth 6 basicHeuristic)
 makePlayer player game @ Player {} = player game
 makePlayer player game @ Nature {} = naturePlayer game
 
-main = runEffect $
-  (playOutM (makePlayer cpuPlayer) newGame) >->
-  (P.filter isPlayer) >->
-  P.print
+main = do
+  setStdGen $ mkStdGen 0
+  runEffect $
+    (playOutM (makePlayer cpuPlayer) newGame) >->
+    (P.filter isPlayer) >->
+    P.print
 
