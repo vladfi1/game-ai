@@ -3,7 +3,7 @@
 
 module Threes where
 
-import Prelude hiding (Left, Right)
+import Prelude hiding (Left, Right, foldr)
 
 --import qualified Data.Map
 import Data.Maybe (catMaybes)
@@ -15,7 +15,7 @@ import Data.Matrix hiding ((!))
 import qualified Data.Matrix as Matrix
 
 import Data.Monoid
-import Data.Foldable (foldMap)
+import Data.Foldable
 
 import qualified Control.Monad.Random as Random
 import Control.Monad.State hiding (state)
@@ -153,7 +153,7 @@ threesLoc ThreesLoc {direction, rows, open, nextTile, rng} = do
   return $ ThreesNum {grid, rng}
 
 threesNum ThreesNum {grid, rng} = do
-  let maxTile = maximum (Matrix.toList grid)
+  let maxTile = foldr max 6 grid
   (tile, rng') <- runStateT (pickTile maxTile) rng
   return $ ThreesDir {
     grid = grid,
