@@ -50,6 +50,7 @@ instance Foldable (Weighted w) where
   foldMap f (Weighted (a, _)) = f a
 
 instance Traversable (Weighted w) where
+  {-# INLINABLE sequenceA #-}
   sequenceA (Weighted (as, w)) = fmap (Weighted . (, w)) as
 
 type Discrete w = Compose [] (Weighted w)
@@ -62,6 +63,7 @@ toList = (map asPair) . getCompose
 
 (<*) = flip (*>)
 
+{-# INLINABLE expectation #-}
 expectation :: (Module.C w a) => Discrete w a -> a
 expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
 

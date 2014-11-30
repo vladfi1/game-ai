@@ -56,6 +56,7 @@ getRows matrix = [getRow i matrix | i <- [1 .. nrows matrix]]
 
 fromRows :: [Vector a] -> Matrix a
 fromRows = Matrix.fromLists . (map Vector.toList)
+--fromRows rows = foldr1 (<->) (map rowVector rows)
 
 data Direction = Up | Down | Left | Right
   deriving (Eq, Ord, Enum, Bounded, Show, Read)
