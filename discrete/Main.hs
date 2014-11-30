@@ -15,4 +15,4 @@ tree = Node {
 f 0 t = value t
 f n t = expectation $ fmap (f (n - 1)) (leaves t)
 
-main = print $ f 20 tree
+main = print $ f 23 tree

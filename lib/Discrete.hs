@@ -6,7 +6,7 @@
 
 module Discrete where
 
-import NumericPrelude hiding (foldr1)
+import NumericPrelude hiding (foldr1, mapM)
 import qualified Algebra.Ring as Ring
 import qualified Algebra.Module as Module
 import qualified Algebra.Field as Field
@@ -24,7 +24,8 @@ import MonadJoin
 import Control.Monad.Random (Rand)
 import qualified Control.Monad.Random as Random
 import System.Random (RandomGen)
-import Control.Monad (liftM)
+import Control.Monad (liftM, ap)
+import Control.Applicative (Applicative, pure, (<*>))
 
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -46,6 +47,11 @@ instance (Ring.C w) => Monad (Weighted w) where
   return = return'
   (>>=) = bind'
 
+--standard
+instance (Ring.C w) => Applicative (Weighted w) where
+  pure = return
+  (<*>) = ap
+
 instance Foldable (Weighted w) where
   foldMap f (Weighted (a, _)) = f a
 
@@ -63,7 +69,7 @@ toList = (map asPair) . getCompose
 
 (<*) = flip (*>)
 
-{-# INLINABLE expectation #-}
+--{-# INLINABLE expectation #-}
 expectation :: (Module.C w a) => Discrete w a -> a
 expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
 
