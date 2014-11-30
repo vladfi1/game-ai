@@ -14,6 +14,9 @@ import qualified Data.Vector as Vector
 import Data.Matrix hiding ((!))
 import qualified Data.Matrix as Matrix
 
+import Data.Monoid
+import Data.Foldable (foldMap)
+
 import qualified Control.Monad.Random as Random
 import Control.Monad.State hiding (state)
 
@@ -188,10 +191,10 @@ scoreTile :: Tile -> Int
 scoreTile n = n
 
 scoreGrid :: Grid -> Int
-scoreGrid grid = sum $ map scoreTile (Matrix.toList grid)
+scoreGrid = getSum . (foldMap $ Sum . scoreTile)
 
 countEmpty :: Grid -> Int
-countEmpty grid = sum $ map isZero (Matrix.toList grid)
+countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
 
