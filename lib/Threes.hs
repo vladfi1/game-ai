@@ -1,5 +1,6 @@
 --{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE TypeFamilies #-}
 
 module Threes where
 
@@ -133,6 +134,9 @@ data ThreesState =
     rng :: RNG
   }
 
+type instance Agent ThreesState = Player
+type instance Action ThreesState = Direction
+
 threesDir :: ThreesState -> Direction -> Maybe ThreesState
 threesDir ThreesDir {grid, nextTile, rng} dir =
   if null open then Nothing else
@@ -161,7 +165,7 @@ threesNum ThreesNum {grid, rng} = do
     rng = rng'
   }
   
-threesToGame :: ThreesState -> GameState Player Direction ThreesState
+threesToGame :: ThreesState -> GameState ThreesState
 threesToGame state @ ThreesDir {grid, nextTile, rng} =
   Player {
     state = state,
@@ -199,7 +203,7 @@ countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
 
-basicHeuristic :: GameState Player Direction ThreesState -> Player -> Double
+basicHeuristic :: GameState ThreesState -> Player -> Double
 basicHeuristic game You =
   fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
   where g = grid $ state game

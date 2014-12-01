@@ -2,6 +2,9 @@
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE UndecidableInstances #-}
 
 module NewGame where
 
@@ -17,41 +20,51 @@ import Discrete
 --data Nature
 --data Player
 
-data GameState a k s =
-  Nature {state :: s, nature :: (Fractional w, MonadDiscrete w m) => m (GameState a k s) } |
-  Player {state :: s, agent :: a, actions :: [(k, GameState a k s)]}
+type family Agent s
+type family Action s
+
+data GameState s =
+  Nature {
+    state :: s,
+    nature :: (Fractional w, MonadDiscrete w m) => m (GameState s)
+  } |
+  Player {
+    state :: s,
+    agent :: Agent s,
+    actions :: [(Action s, GameState s)]
+  }
 
 isPlayer Player {} = True
 isPlayer _ = False
 
-instance (Show s, Show k, Show a) => Show (GameState a k s) where
+instance (Show s, Show (Agent s), Show (Action s)) => Show (GameState s) where
   show Player {state, agent, actions} =
     (show agent) ++ " to move:\n" ++ (show state) ++ "Legal moves: " ++ (show $ map fst actions)
 
 terminal Player {actions = []} = True
 terminal _ = False
 
-type Heuristic a k s = GameState a k s -> a -> Double
+type Heuristic s = GameState s -> Agent s -> Double
 
-lookAheadEval :: forall a k s. Heuristic a k s -> Heuristic a k s
+lookAheadEval :: forall s. Heuristic s -> Heuristic s
 lookAheadEval heuristic Nature {nature} = \a ->
-  expectation $ fmap (\state -> heuristic state a) (nature :: Discrete Double (GameState a k s))
+  expectation $ fmap (\state -> heuristic state a) (nature :: Discrete Double (GameState s))
 
 lookAheadEval heuristic state @ Player {agent, actions}
   | terminal state = heuristic state
   | otherwise      = maximumByKey ($ agent) (fmap (heuristic . snd) actions)
 
-lookAheadEvalDepth :: Int -> Heuristic a k s -> Heuristic a k s
+lookAheadEvalDepth :: Int -> Heuristic s -> Heuristic s
 lookAheadEvalDepth n = iterateN n lookAheadEval
 
-lookAheadPlay :: Heuristic a k s -> GameState a k s -> GameState a k s
+lookAheadPlay :: Heuristic s -> GameState s -> GameState s
 lookAheadPlay heuristic Player {agent, actions} =
   maximumByKey (\state -> heuristic state agent) (fmap snd actions)
 
-lookAheadPlayDepth :: Int -> Heuristic a k s -> GameState a k s -> GameState a k s
+lookAheadPlayDepth :: Int -> Heuristic s -> GameState s -> GameState s
 lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuristic)
 
---playOut :: (GameState a k s -> GameState a k s) -> GameState a k s -> [GameState a k s]
+--playOut :: (GameState s -> GameState s) -> GameState s -> [GameState s]
 --playOut play state@Terminal {} = [state]
 --playOut play state = state : playOut play (play state)
 
@@ -61,7 +74,7 @@ lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuri
 --playOutEval :: Game a s => (s -> s) -> Heuristic a s
 --playOutEval play state = evaluate (finalState play state)
 
-playOutM :: (Monad m) => (GameState a k s -> m (GameState a k s)) -> GameState a k s -> Producer (GameState a k s) m ()
+playOutM :: (Monad m) => (GameState s -> m (GameState s)) -> GameState s -> Producer (GameState s) m ()
 --playOutM play state@Terminal {} = return [state]
 playOutM play state
   | terminal state = yield state
@@ -71,22 +84,22 @@ playOutM play state
       playOutM play next
 
 {-
-playOutEvalM :: (Monad m) => (GameState a k s -> m (GameState a k s)) -> GameState a k s -> m (a -> Double)
+playOutEvalM :: (Monad m) => (GameState s -> m (GameState s)) -> GameState s -> m (a -> Double)
 playOutEvalM play state = do
   game <- playOutM play state
   let final = last game
   return $ value final
 --}
 
-randomPlayer :: (Fractional w, MonadDiscrete w m) => GameState a k s -> m (GameState a k s)
+randomPlayer :: (Fractional w, MonadDiscrete w m) => GameState s -> m (GameState s)
 randomPlayer Player {actions} = uniform (fmap snd actions)
 randomPlayer Nature {nature} = nature
 
 {-
-playOutEvalR :: (MonadDiscrete w m) => GameState a k s -> m (a -> Double)
+playOutEvalR :: (MonadDiscrete w m) => GameState s -> m (a -> Double)
 playOutEvalR = playOutEvalM randomPlayer
 
-playOutEvalPR :: (GameState a k s -> Int) -> Heuristic a s
+playOutEvalPR :: (GameState s -> Int) -> Heuristic a s
 playOutEvalPR hash state = Random.evalRand (playOutEvalR state) (Random.mkStdGen $ hash state)
 --}
 
