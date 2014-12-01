@@ -12,6 +12,8 @@ import qualified Algebra.Module as Module
 import qualified Algebra.Field as Field
 import qualified Prelude
 
+import Debug.Trace
+
 --import Control.Lens
 
 import Data.Functor.Compose
@@ -67,8 +69,8 @@ type Discrete w = Compose [] (Weighted w)
 fromList :: [(a, w)] -> Discrete w a
 fromList = Compose . (map Weighted)
 
-toList :: Discrete w a -> [(a, w)]
-toList = (map asPair) . getCompose
+toWeightedList :: Discrete w a -> [(a, w)]
+toWeightedList = (map asPair) . getCompose
 
 (<*) = flip (*>)
 
@@ -76,12 +78,18 @@ toList = (map asPair) . getCompose
 expectation :: (Module.C w a) => Discrete w a -> a
 expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
 
+--expectation' :: (Module.C w a) => Int -> Discrete w a -> a
+--expectation' n = expectation . fromList . (take n) . toWeightedList
+
+{-
 instance (Ring.C w) => Monad (Discrete w) where
   return = return'
   
   (Compose []) >>= f = Compose []
   (Compose ((Weighted (a, w)) : rest)) >>= f =
-    Compose $ [Weighted (b, w * w1) | Weighted (b, w1) <- getCompose (f a)] ++ getCompose (Compose rest >>= f)
+    Compose $ map g (getCompose (f a)) ++ getCompose (Compose rest >>= f)
+    where g (Weighted (b, w1)) = Weighted (b, w * w1)
+-}
 
 --instance (Show w, Show a) => Show (Discrete w a) where
 --  show = show . getCompose

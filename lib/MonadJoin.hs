@@ -27,9 +27,9 @@ instance (Monad' m, Monad' n, Traversable n) => Monad' (Compose m n) where
   join' = Compose . (fmap join') . join' . (fmap sequenceA) . getCompose . (fmap getCompose)
 
 -- standard
---instance (Monad' m, Monad' n, Traversable n) => Monad (Compose m n) where
---  return = return'
---  (>>=) = bind'
+instance (Monad' m, Monad' n, Traversable n) => Monad (Compose m n) where
+  return = return'
+  (>>=) = bind'
 
 -- standard
 instance Monad' [] where

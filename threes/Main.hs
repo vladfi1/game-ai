@@ -20,7 +20,7 @@ humanPlayer game @ Player {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-cpuPlayer = return . (lookAheadPlayDepth 6 basicHeuristic)
+cpuPlayer = return . (lookAheadPlayDepth 7 basicHeuristic)
 
 makePlayer player game @ Player {} = player game
 makePlayer player game @ Nature {} = naturePlayer game
