@@ -38,7 +38,7 @@ instance (Show w, Show a) => Show (Weighted w a) where
   show = show . asPair
 
 instance Functor (Weighted w) where
-  {-# INLINABLE fmap #-}
+  --{-# INLINABLE fmap #-}
   --fmap f = Weighted . (_1 %~ f) . asPair
   fmap f (Weighted (a, w)) = Weighted (f a, w)
 
