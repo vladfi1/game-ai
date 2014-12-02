@@ -2,9 +2,6 @@
 
 module Main where
 
-import Pipes
-import qualified Pipes.Prelude as P
-
 import Data.Functor
 import Control.Monad
 import Control.Monad.Random
@@ -12,6 +9,7 @@ import qualified Data.Map as Map
 
 import Threes
 import NewGame
+import Runner
 
 
 humanPlayer game @ Player {actions} = do
@@ -20,15 +18,17 @@ humanPlayer game @ Player {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-cpuPlayer = return . (lookAheadPlayDepth 7 basicHeuristic)
+cpuPlayer = return . (lookAheadPlayDepth 4 basicHeuristic)
 
-makePlayer player game @ Player {} = player game
-makePlayer player game @ Nature {} = naturePlayer game
+saveDir = "saved/threes/"
 
 main = do
   setStdGen $ mkStdGen 0
-  runEffect $
-    (playOutM (makePlayer cpuPlayer) newGame) >->
-    (P.filter isPlayer) >->
-    P.print
-
+  
+  recordGame saveDir newGame cpuPlayer
+  
+  games <- readGames saveDir
+  
+  let game = (games !! 0) :: [ThreesState]
+  
+  forM game print

@@ -1,6 +1,8 @@
 --{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies #-}
+{-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
+{-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 
 module Threes where
 
@@ -26,6 +28,11 @@ import Discrete
 --import Instances
 import NewGame
 import OnePlayer
+
+import GHC.Generics
+import Data.Serialize (Serialize)
+import qualified Data.Serialize as Serialize
+import Data.Vector.Serialize
 
 type Tile = Int
 type Row = Vector Tile
@@ -60,7 +67,9 @@ fromRows = Matrix.fromLists . (map Vector.toList)
 --fromRows rows = foldr1 (<->) (map rowVector rows)
 
 data Direction = Up | Down | Left | Right
-  deriving (Eq, Ord, Enum, Bounded, Show, Read)
+  deriving (Eq, Ord, Enum, Bounded, Show, Read, Generic)
+
+instance Serialize Direction
 
 transposes Down = True
 transposes Up = True
@@ -133,6 +142,14 @@ data ThreesState =
     grid :: Grid,
     rng :: RNG
   }
+  deriving (Generic)
+
+--deriving instance Generic Grid
+instance Serialize Grid where
+  put = Serialize.put . toLists
+  get = fmap fromLists Serialize.get
+
+instance Serialize ThreesState
 
 type instance Agent ThreesState = Player
 type instance Action ThreesState = Direction
