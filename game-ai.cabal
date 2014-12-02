@@ -19,7 +19,7 @@ library
   exposed-modules:     UCT, Interactive, Connect4, TicTacToe, Game, Utils, MCTS, KJC, Grid, TwoPlayer, OnePlayer, Threes, MonadJoin, Discrete, NewGame, Instances, Tree, Runner, TrainNN, Convertible, ThreesGui
   -- other-modules:      
   other-extensions:    TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FunctionalDependencies
-  build-depends:       base >=4.6, containers >=0.5 && <0.6, vector >=0.10, matrix >=0.3, mtl >=2.1, numeric-prelude >=0.4, MonadRandom >=0.3, ansi-terminal >=0.5, random >= 1.0, transformers >= 0.4, pipes >= 4.1, threepenny-gui, cereal >= 0.4, cereal-vector >= 0.2, bytestring >= 0.10, directory >= 1.2, HaskellNN >= 0.1.3, hmatrix >= 0.13 && < 0.16
+  build-depends:       base >=4.6, containers >=0.5 && <0.6, vector >=0.10, matrix >=0.3, mtl >=2.1, numeric-prelude >=0.4, MonadRandom >=0.3, ansi-terminal >=0.5, lens >= 4.4, random >= 1.0, transformers >= 0.4, pipes >= 4.1, threepenny-gui, cereal >= 0.4, cereal-vector >= 0.2, bytestring >= 0.10, directory >= 1.2, HaskellNN >= 0.1.3, hmatrix >= 0.13 && < 0.16
   hs-source-dirs:      lib
   ghc-options:         -fprof-auto -rtsopts -O2
   default-language:    Haskell2010
@@ -46,7 +46,7 @@ executable threes
 executable threes-gui
   main-is:             Gui.hs
   hs-source-dirs:      threes
-  build-depends:       base, game-ai, containers >=0.5, MonadRandom >= 0.3, pipes >= 4.1, HaskellNN >= 0.1.3
+  build-depends:       base, game-ai, containers >=0.5, MonadRandom >= 0.3, pipes >= 4.1, HaskellNN >= 0.1.3,  monad-loops >= 0.4.2.1 
   ghc-options:         -fprof-auto -rtsopts -O2
   default-language:    Haskell2010
 
