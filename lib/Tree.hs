@@ -1,3 +1,8 @@
+{-# LANGUAGE DeriveFunctor, DeriveFoldable, DeriveTraversable #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE BangPatterns #-}
+--{-# LANGUAGE NoImplicitPrelude #-}
+
 module Tree where
 
 import Data.Monoid (Monoid, (<>))
@@ -5,9 +10,28 @@ import Data.Monoid (Monoid, (<>))
 import Data.Vector (Vector)
 import qualified Data.Vector as Vector
 
-import Prelude hiding (lookup)
+import Control.Monad
+import Control.Applicative
+import Data.Foldable
+import Data.Traversable
 
-data RangeTree a = Node {
+import qualified Algebra.Ring as Ring
+
+import MonadJoin
+
+class Tree t where
+  isNode :: t a -> Bool
+  isLeaf :: t a -> Bool
+  
+  isNode = not . isLeaf
+  isLeaf = not . isNode
+  
+  getLeft :: t a -> t a
+  getRight :: t a -> t a
+  getValue :: t a -> a
+
+data RangeTree a =
+  Node {
     size  :: Int,
     val   :: a,
     left  :: RangeTree a,
@@ -46,3 +70,32 @@ adjust f index node =
 
 update :: Monoid a => a -> Int -> RangeTree a -> RangeTree a
 update a = adjust (const a)
+
+data TreeW w a =
+  NodeW {
+    weight :: !w,
+    leftW  :: TreeW w a,
+    rightW :: TreeW w a
+  } |
+  LeafW {
+    weight :: !w,
+    valueW :: !a
+  }
+  deriving (Functor, Foldable, Traversable)
+
+instance (Ring.C w) => Monad' (TreeW w) where
+  return' = LeafW Ring.one 
+  join' NodeW {weight, leftW, rightW} = NodeW weight (join' leftW) (join' rightW)
+  join' LeafW {weight, valueW} = valueW {weight}
+
+--standard
+instance (Ring.C w) => Monad (TreeW w) where
+  return = return'
+  (>>=) = bind'
+
+--standard
+instance (Ring.C w) => Applicative (TreeW w) where
+  pure = return
+  (<*>) = ap
+
+

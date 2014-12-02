@@ -16,7 +16,7 @@ build-type:          Simple
 cabal-version:       >=1.18
 
 library
-  exposed-modules:     UCT, Interactive, Connect4, TicTacToe, Game, Utils, MCTS, KJC, Grid, TwoPlayer, OnePlayer, Threes, MonadJoin, Discrete, NewGame, Instances
+  exposed-modules:     UCT, Interactive, Connect4, TicTacToe, Game, Utils, MCTS, KJC, Grid, TwoPlayer, OnePlayer, Threes, MonadJoin, Discrete, NewGame, Instances, Tree
   -- other-modules:      
   other-extensions:    TypeSynonymInstances, FlexibleInstances, MultiParamTypeClasses, FunctionalDependencies
   build-depends:       base >=4.6, containers >=0.5 && <0.6, vector >=0.10, matrix >=0.3, mtl >=2.1, numeric-prelude >=0.4, MonadRandom >=0.3, ansi-terminal >=0.5, random >= 1.0, transformers >= 0.4, pipes >= 4.1
