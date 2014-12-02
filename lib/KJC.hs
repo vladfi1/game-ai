@@ -124,6 +124,6 @@ readSquare legal = do
 
 humanPlayer :: KJCState -> IO KJCState
 humanPlayer state = do
-  print state
+  --print state
   square <- readSquare $ Set.fromList (playable state)
   return $ play state square

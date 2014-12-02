@@ -1,3 +1,4 @@
+module ThreesGui where
 
 import Control.Monad
 
@@ -8,8 +9,9 @@ import Graphics.UI.Threepenny.Core
 {-----------------------------------------------------------------------------
     Main
 ------------------------------------------------------------------------------}
-main :: IO ()
-main = startGUI defaultConfig setup
+--main :: IO ()
+--main = startGUI defaultConfig setup
+initGUI = startGUI defaultConfig setup
 
 setup :: Window -> UI ()
 setup window = do
@@ -22,8 +24,8 @@ setup window = do
     customJS <- UI.button #+ [string "Custom Js"]
     getBody window #+ [element canvas, element customJS]
     
-    threesDir <- loadDirectory "Threes-Orig"
-    customJSuri <- loadFile "text/javascript" "custom.js"
+    threesDir <- loadDirectory "Threes-HTML"
+    customJSuri <- loadFile "text/javascript" "Threes-HTML/custom.js"
     
     --on UI.click customJS  $ const $ callFunction $ trampoline customJSuri
 

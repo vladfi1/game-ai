@@ -10,3 +10,4 @@ Test
 dist/
 cabal.sandbox.config
 cabal.config
+saved/
