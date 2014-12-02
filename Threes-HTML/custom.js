@@ -44,9 +44,3 @@ window.pressDown = pressDown;
 
 onLoad(); //defined in trampoline code
 
-
-// ************************************************
-// *************** Private functions *************** 
-// ************************************************
-function rewrite(text, dir) {
-}
