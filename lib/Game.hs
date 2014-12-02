@@ -13,7 +13,7 @@ type Heuristic a s = s -> a -> Double
 class Game a s | s -> a where
   agent :: s -> a
   actions :: s -> [s]
-  nature :: (MonadDiscrete w m) => s -> m s
+  --nature :: (MonadDiscrete w m) => s -> m s
   terminal :: s -> Bool
   evaluate :: Heuristic a s
 
