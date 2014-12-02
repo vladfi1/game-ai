@@ -7391,11 +7391,6 @@ __meteor_runtime_config__ = {"meteorRelease":"0.7.0.1","PUBLIC_SETTINGS":{"ga":{
                     o.ontimeout()
                 });
                 o.onfinish = function(e, t) {
-                    if (clearTimeout(s), s = null, 200 === e) {
-                        var n = (new Date).getTime() - r, o = p.parse(t);
-                        "object" != typeof o && (o = {}), i.emit("finish", o, n)
-                    } else
-                        i.emit("finish")
                 }, o.ontimeout = function() {
                     o.close(), i.emit("finish")
                 }

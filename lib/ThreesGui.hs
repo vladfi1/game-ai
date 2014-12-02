@@ -30,7 +30,6 @@ guiInited =  unsafePerformIO $ newMVar False
 --userInput :: IO (MVar Int)
 --userInput =  newEmptyMVar
 
-initGUI = startGUI defaultConfig setup
 
 
 guiHumanPlayer :: GameState ThreesState -> IO (GameState ThreesState)
@@ -44,47 +43,33 @@ guiHumanPlayer game @ Player {actions}  = do
   else do
     return () 
 
-  
   print game
-  --putStrLn "GUI INITIED"
-  --userInputMVar <- userInput
-  --
-  --key <- takeMVar userInputMVar 
-  --putStrLn $ show key
-  --putStrLn "GOT USER INPUT"
   line <- getLine
+  putStrLn $ "Got Line " ++ line
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-  --return game
+onkeydown :: Handler Int
+onkeydown = \key -> do
+      putStrLn "GOT KEY DOWN"
+      putStrLn $ show key
+      return ()
 
---onkeydown :: Handler Int
---onkeydown = \key -> do
---      putStrLn "GOT KEY DOWN"
---      putStrLn $ show key
---      userInputMVar <- userInput
---      tryPutMVar userInputMVar key
---      return ()
-
+initGUI = startGUI defaultConfig setup
 setup :: Window -> UI ()
 setup window = do
     liftIO $ putStrLn "SETUP WINDOW"
-    
     threesDir <- loadDirectory "Threes-HTML"
     customJSuri <- loadFile "text/javascript" "Threes-HTML/custom.js"
     
-    body <- getBody window
-    --liftIO $ do -- UI()
-    --  --register :: IO (IO())
-    --  registerAction <- register (UI.keydown body) onkeydown 
-    --  registerAction
-    
-    --liftIO $ putStrLn "REGISTERED"
-    callFunction $ ffi trampolineCode customJSuri threesDir
 
---guiGetAction = do 
---  action <- callFunction $ ffi "waitOnUserAction()"
---  return $ turnToDirection action
+    body <- getBody window
+    liftIO $ do -- UI()
+      putStrLn "registering"
+      registerAction <- register (UI.keydown body) onkeydown 
+      registerAction
+
+    runFunction $ ffi trampolineCode customJSuri threesDir
 
 trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
   "xhr.open('GET', %1, true)",
@@ -105,13 +90,3 @@ trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
   "}",
   "window.onLoad = function() {loadThrees(%2);};",
   "xhr.send()"]
-
-trampoline :: String -> String -> JSFunction String --customJSUrl -> threesDir
-trampoline = ffi $ trampolineCode
-
-buildGrid :: Double -> Double -> Double -> [(Double, Double, Double, Double, String, String)]
-buildGrid nrows ncols size= [ (0, 0, size, size, "red", "1"),
-  (size, 0, size, size, "blue", "2"),
-  (0, size, size, size, "blue", ""),
-  (size, size, size, size, "red", "3")]
-
