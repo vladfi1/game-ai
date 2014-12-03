@@ -4,6 +4,7 @@
 module ThreesGui where
 
 import Control.Monad
+import Control.Monad.Loops
 
 import qualified Graphics.UI.Threepenny as UI
 import Graphics.UI.Threepenny.Core
@@ -27,8 +28,19 @@ import System.IO.Unsafe
 guiInited :: MVar Bool
 guiInited =  unsafePerformIO $ newMVar False 
 
---userInput :: IO (MVar Int)
---userInput =  newEmptyMVar
+userInput :: MVar Int
+userInput =  unsafePerformIO newEmptyMVar
+
+getUserKeyEvent :: IO (String)
+getUserKeyEvent = do
+  key <- iterateWhile (\key -> not ( (key >= 37) && (key <=40) )) $ (takeMVar userInput )
+  
+  return  (case key of 
+    37 -> "Left"
+    38 -> "Up"
+    39 -> "Right"
+    40 -> "Down")
+
 
 
 
@@ -44,7 +56,7 @@ guiHumanPlayer game @ Player {actions}  = do
     return () 
 
   print game
-  line <- getLine
+  line <- getUserKeyEvent
   putStrLn $ "Got Line " ++ line
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
@@ -53,6 +65,7 @@ onkeydown :: Handler Int
 onkeydown = \key -> do
       putStrLn "GOT KEY DOWN"
       putStrLn $ show key
+      tryPutMVar userInput key
       return ()
 
 initGUI = startGUI defaultConfig setup
@@ -62,7 +75,6 @@ setup window = do
     threesDir <- loadDirectory "Threes-HTML"
     customJSuri <- loadFile "text/javascript" "Threes-HTML/custom.js"
     
-
     body <- getBody window
     liftIO $ do -- UI()
       putStrLn "registering"
