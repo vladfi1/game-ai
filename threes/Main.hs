@@ -1,4 +1,5 @@
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Main where
 
@@ -12,23 +13,27 @@ import NewGame
 import Runner
 
 
-humanPlayer game @ Player {actions} = do
+humanPlayer game @ PlayerState {actions} = do
   print game
   line <- getLine
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-cpuPlayer = return . (lookAheadPlayDepth 4 basicHeuristic)
+cpuPlayer = (lookAheadPlayDepth 4 basicHeuristic)
 
 saveDir = "saved/threes/"
 
-main = do
-  setStdGen $ mkStdGen 0
-  
+testRunner = do
   recordGame saveDir newGame cpuPlayer
   
   games <- readGames saveDir
   
-  let game = (games !! 0) :: [ThreesState]
+  let (game :: Saved ThreesState) = (games !! 0)
   
-  forM game print
+  --forM game print
+  print game
+
+main = do
+  setStdGen $ mkStdGen 0
+  testRunner
+

@@ -38,6 +38,10 @@ type Tile = Int
 type Row = Vector Tile
 type Grid = Matrix Tile
 
+instance Serialize Grid where
+  put = Serialize.put . toLists
+  get = fmap fromLists Serialize.get
+
 width = 4
 height = 4
 
@@ -144,14 +148,9 @@ data ThreesState =
   }
   deriving (Generic)
 
---deriving instance Generic Grid
-instance Serialize Grid where
-  put = Serialize.put . toLists
-  get = fmap fromLists Serialize.get
-
 instance Serialize ThreesState
 
-type instance Agent ThreesState = Player
+type instance Agent ThreesState = OnePlayer
 type instance Action ThreesState = Direction
 
 threesDir :: ThreesState -> Direction -> Maybe ThreesState
@@ -184,20 +183,20 @@ threesNum ThreesNum {grid, rng} = do
   
 threesToGame :: ThreesState -> GameState ThreesState
 threesToGame state @ ThreesDir {grid, nextTile, rng} =
-  Player {
+  PlayerState {
     state = state,
     agent = You,
     actions = catMaybes [fmap (\s -> (dir, threesToGame s)) (threesDir state dir) | dir <- allValues]
   }
 
 threesToGame state @ ThreesLoc {} =
-  Nature {
+  NatureState {
     state = state,
     nature = liftM threesToGame (threesLoc state)
   }
 
 threesToGame state @ ThreesNum {} =
-  Nature {
+  NatureState {
     state = state,
     nature = liftM threesToGame (threesNum state)
   }
@@ -220,7 +219,7 @@ countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
 
-basicHeuristic :: GameState ThreesState -> Player -> Double
+basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
 basicHeuristic game You =
   fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
   where g = grid $ state game

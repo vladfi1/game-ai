@@ -10,58 +10,57 @@ module NewGame where
 
 import Pipes
 import qualified Pipes.Prelude as P
---import Data.Monoid
-import qualified Control.Monad.Random as Random
+
+--import qualified Control.Monad.Random as Random
+
+import qualified Data.Map as Map
 
 import Utils (maximumByKey, iterateN)
 import Discrete
---import Instances
-
---data Nature
---data Player
 
 type family Agent s
 type family Action s
 
 data GameState s =
-  Nature {
+  NatureState {
     state :: s,
     nature :: (Fractional w, MonadDiscrete w m) => m (GameState s)
   } |
-  Player {
+  PlayerState {
     state :: s,
     agent :: Agent s,
     actions :: [(Action s, GameState s)]
   }
 
-isPlayer Player {} = True
-isPlayer _ = False
+isPlayerState PlayerState {} = True
+isPlayerState _ = False
 
 instance (Show s, Show (Agent s), Show (Action s)) => Show (GameState s) where
-  show Player {state, agent, actions} =
+  show PlayerState {state, agent, actions} =
     (show agent) ++ " to move:\n" ++ (show state) ++ "Legal moves: " ++ (show $ map fst actions)
 
-terminal Player {actions = []} = True
+terminal PlayerState {actions = []} = True
 terminal _ = False
 
 type Heuristic s = GameState s -> Agent s -> Double
+type Player s m = GameState s -> m (Action s)
 
-lookAheadEval :: forall s. Heuristic s -> Heuristic s
-lookAheadEval heuristic Nature {nature} = \a ->
+lookAheadEval :: forall s m. Heuristic s -> Heuristic s
+lookAheadEval heuristic NatureState {nature} = \a ->
   expectation $ fmap (\state -> heuristic state a) (nature :: Discrete Double (GameState s))
 
-lookAheadEval heuristic state @ Player {agent, actions}
+lookAheadEval heuristic state @ PlayerState {agent, actions}
   | terminal state = heuristic state
   | otherwise      = maximumByKey ($ agent) (fmap (heuristic . snd) actions)
 
 lookAheadEvalDepth :: Int -> Heuristic s -> Heuristic s
 lookAheadEvalDepth n = iterateN n lookAheadEval
 
-lookAheadPlay :: Heuristic s -> GameState s -> GameState s
-lookAheadPlay heuristic Player {agent, actions} =
-  maximumByKey (\state -> heuristic state agent) (fmap snd actions)
+lookAheadPlay :: (Monad m) => Heuristic s -> Player s m
+lookAheadPlay heuristic PlayerState {agent, actions} =
+  return . fst $ maximumByKey (\(_, state) -> heuristic state agent) actions
 
-lookAheadPlayDepth :: Int -> Heuristic s -> GameState s -> GameState s
+lookAheadPlayDepth :: (Monad m) => Int -> Heuristic s -> Player s m
 lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuristic)
 
 --playOut :: (GameState s -> GameState s) -> GameState s -> [GameState s]
@@ -74,13 +73,16 @@ lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuri
 --playOutEval :: Game a s => (s -> s) -> Heuristic a s
 --playOutEval play state = evaluate (finalState play state)
 
-playOutM :: (Monad m) => (GameState s -> m (GameState s)) -> GameState s -> Producer (GameState s) m ()
---playOutM play state@Terminal {} = return [state]
-playOutM play state
-  | terminal state = yield state
+playOutM :: (Ord (Action s), Fractional w, MonadDiscrete w m) => Player s m -> GameState s -> Producer (GameState s, Action s) m (GameState s)
+
+playOutM play state @ NatureState {nature} = (lift nature) >>= (playOutM play)
+
+playOutM play state @ PlayerState {actions}
+  | terminal state = return state
   | otherwise = do
-      yield state
-      next <- lift $ play state
+      act <- lift $ play state
+      yield (state, act)
+      let next = (Map.fromList actions) Map.! act
       playOutM play next
 
 {-
@@ -91,17 +93,16 @@ playOutEvalM play state = do
   return $ value final
 --}
 
-randomPlayer :: (Fractional w, MonadDiscrete w m) => GameState s -> m (GameState s)
-randomPlayer Player {actions} = uniform (fmap snd actions)
-randomPlayer Nature {nature} = nature
+randomPlayer :: (Fractional w, MonadDiscrete w m) => Player s m
+randomPlayer PlayerState {actions} = uniform (fmap fst actions)
+--randomPlayer NatureState {nature} = nature
 
 {-
 playOutEvalR :: (MonadDiscrete w m) => GameState s -> m (a -> Double)
-playOutEvalR = playOutEvalM randomPlayer
+playOutEvalR = playOutEvalM randomPlayerState
 
 playOutEvalPR :: (GameState s -> Int) -> Heuristic a s
 playOutEvalPR hash state = Random.evalRand (playOutEvalR state) (Random.mkStdGen $ hash state)
 --}
 
-naturePlayer Nature {nature} = Random.evalRandIO nature
 

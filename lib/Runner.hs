@@ -16,17 +16,18 @@ import Data.Either
 
 import NewGame
 
-makePlayer player game @ Player {} = player game
-makePlayer player game @ Nature {} = naturePlayer game
+type Saved s = ([(s, Action s)], s)
 
 recordGame dirName initial player = do
-  game <- P.toListM $ (playOutM (makePlayer player) initial) >-> (P.filter isPlayer) >-> (P.map state)
+  (game, final) <- P.fold' (flip (:)) [] id (playOutM player initial)
+  
+  let game' = reverse [(state s, act) | (s, act) <- game]
   
   createDirectoryIfMissing True dirName
   
   hash <- randomIO :: IO Int
   let fileName = dirName ++ (show hash)
-  writeFile fileName (encode game)
+  writeFile fileName $ encode (game', state final)
 
 readGame fileName = do
   putStrLn fileName
@@ -35,7 +36,7 @@ readGame fileName = do
 
 readGames dirName = do
   files <- getDirectoryContents dirName
-  let gameFiles = map (dirName ++) . (filter (\s -> (head s) /= '.')) $ files
+  let gameFiles = map (dirName ++) . (filter $ (flip notElem) [".", ".."]) $ files
   games <- forM gameFiles readGame
   return $ rights games
 
