@@ -104,6 +104,9 @@ instance (RandomGen g) => MonadDiscrete Prelude.Rational (Rand g) where
   sample = Random.fromList
   uniform = Random.uniform
 
+instance MonadDiscrete Prelude.Rational IO where
+  sample = Random.fromList
+  uniform = Random.uniform
 
 dropZeros = filter $ (/= zero) . snd
 
