@@ -25,14 +25,17 @@ import System.IO.Unsafe
 --main :: IO ()
 --main = startGUI defaultConfig setup
 
-guiInited :: MVar Bool
-guiInited =  unsafePerformIO $ newMVar False 
+--guiInited :: MVar Bool
+--guiInited =  unsafePerformIO $ newMVar False 
+--
+--userInput :: MVar Int
+--userInput =  unsafePerformIO newEmptyMVar
 
-userInput :: MVar Int
-userInput =  unsafePerformIO newEmptyMVar
+--chan :: Chan a
+--chan = unsafePerformIO newCHan
 
-getUserKeyEvent :: IO (String)
-getUserKeyEvent = do
+getUserKeyEvent :: MVar Int -> IO (String)
+getUserKeyEvent userInput = do
   key <- iterateWhile (\key -> not ( (key >= 37) && (key <=40) )) $ (takeMVar userInput )
   
   return  (case key of 
@@ -42,46 +45,56 @@ getUserKeyEvent = do
     40 -> "Down")
 
 
+--sendToGui :: GameState ThreesState -> UI ()
+--sendToGui game = runFunction $ ffi jsUpdateBoard (gameToBoardArr game)
 
-
-guiHumanPlayer :: GameState ThreesState -> IO (GameState ThreesState)
-guiHumanPlayer game @ Player {actions}  = do
+makeGuiHumanPlayer :: IO (MVar Bool) -> IO (MVar Int) -> IO (Chan a) -> GameState ThreesState -> IO (GameState ThreesState)
+makeGuiHumanPlayer guiInitedIO userInputIO chanIO game = do
+  guiInited <- guiInitedIO
+  userInput <- userInputIO
+  chan <- chanIO
+  
   inited <- tryTakeMVar guiInited
   if isJust inited then do
     putStrLn "Initing"
     putStrLn $ show inited
-    forkIO initGUI
+    forkIO $ initGUI userInput
     return ()
   else do
     return () 
 
   print game
-  line <- getUserKeyEvent
+  --sendToGui game
+  line <- getUserKeyEvent userInput
   putStrLn $ "Got Line " ++ line
   let tile = read line :: Direction
-  return $ (Map.fromList actions) Map.! tile
+  return $ (Map.fromList (actions game)) Map.! tile
 
-onkeydown :: Handler Int
-onkeydown = \key -> do
-      putStrLn "GOT KEY DOWN"
-      putStrLn $ show key
+
+onkeydown :: MVar Int -> Handler Int
+onkeydown userInput key = do
+      putStrLn "GOT KEY DOWN"  
+      putStrLn $ show key 
       tryPutMVar userInput key
       return ()
 
-initGUI = startGUI defaultConfig setup
-setup :: Window -> UI ()
-setup window = do
+initGUI :: MVar Int -> IO ()
+initGUI userInput = startGUI defaultConfig $ setup userInput
+
+setup :: MVar Int -> Window ->  UI ()
+setup userInput window = do
     liftIO $ putStrLn "SETUP WINDOW"
     threesDir <- loadDirectory "2048-HTML"
     customJSuri <- loadFile "text/javascript" "2048-HTML/custom.js"
     
     body <- getBody window
-    liftIO $ do -- UI()
+    liftIO $ do 
       putStrLn "registering"
-      registerAction <- register (UI.keydown body) onkeydown 
+      registerAction <- register (UI.keydown body) $ onkeydown userInput
       registerAction
 
     runFunction $ ffi trampolineCode customJSuri threesDir
+    return ()
 
 trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
   "xhr.open('GET', %1, true)",
