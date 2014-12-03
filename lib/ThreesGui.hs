@@ -72,8 +72,8 @@ initGUI = startGUI defaultConfig setup
 setup :: Window -> UI ()
 setup window = do
     liftIO $ putStrLn "SETUP WINDOW"
-    threesDir <- loadDirectory "Threes-HTML"
-    customJSuri <- loadFile "text/javascript" "Threes-HTML/custom.js"
+    threesDir <- loadDirectory "2048-HTML"
+    customJSuri <- loadFile "text/javascript" "2048-HTML/custom.js"
     
     body <- getBody window
     liftIO $ do -- UI()
