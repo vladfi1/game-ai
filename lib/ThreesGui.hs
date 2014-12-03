@@ -13,9 +13,11 @@ import Control.Concurrent
 import Data.Maybe
 
 import qualified Data.Map as Map
+import qualified Data.Matrix as Matrix 
 
 import NewGame
 import Threes
+import qualified Threes
 import System.IO.Unsafe
 
 
@@ -25,50 +27,34 @@ import System.IO.Unsafe
 --main :: IO ()
 --main = startGUI defaultConfig setup
 
---guiInited :: MVar Bool
---guiInited =  unsafePerformIO $ newMVar False 
---
---userInput :: MVar Int
---userInput =  unsafePerformIO newEmptyMVar
+keyToDirection :: Int -> String
+keyToDirection key =  (case key of 
+      37 -> "Left"
+      38 -> "Up"
+      39 -> "Right"
+      40 -> "Down"
+      otherwise -> "POOP")
 
---chan :: Chan a
---chan = unsafePerformIO newCHan
+makeGuiHumanPlayer :: IO (MVar Int) -> IO (MVar (GameState ThreesState)) -> IO (GameState ThreesState -> IO (GameState ThreesState))
+makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
 
-getUserKeyEvent :: MVar Int -> IO (String)
-getUserKeyEvent userInput = do
-  key <- iterateWhile (\key -> not ( (key >= 37) && (key <=40) )) $ (takeMVar userInput )
+  putStrLn "Initing"
+  userInput <- threepennyToMainIO
+  gamestateChannel <- mainToThreePennyIO 
+
+  forkIO $ initGUI userInput gamestateChannel
   
-  return  (case key of 
-    37 -> "Left"
-    38 -> "Up"
-    39 -> "Right"
-    40 -> "Down")
-
-
---sendToGui :: GameState ThreesState -> UI ()
---sendToGui game = runFunction $ ffi jsUpdateBoard (gameToBoardArr game)
-
-makeGuiHumanPlayer :: IO (MVar Bool) -> IO (MVar Int) -> IO (Chan a) -> GameState ThreesState -> IO (GameState ThreesState)
-makeGuiHumanPlayer guiInitedIO userInputIO chanIO game = do
-  guiInited <- guiInitedIO
-  userInput <- userInputIO
-  chan <- chanIO
+  let between a b c = a <= c && c <= b
+  let print gamestate = putMVar gamestateChannel gamestate
+  let getUserInput =  fmap keyToDirection $ iterateUntil (between 37 40) (takeMVar userInput)
   
-  inited <- tryTakeMVar guiInited
-  if isJust inited then do
-    putStrLn "Initing"
-    putStrLn $ show inited
-    forkIO $ initGUI userInput
-    return ()
-  else do
-    return () 
-
-  print game
-  --sendToGui game
-  line <- getUserKeyEvent userInput
-  putStrLn $ "Got Line " ++ line
-  let tile = read line :: Direction
-  return $ (Map.fromList (actions game)) Map.! tile
+  --guiHumanPlayer :: GameState ThreesState ->
+  return $ \gamestate -> do
+    print gamestate
+    line <- getUserInput
+    putStrLn $ "Got Line " ++ show line
+    let tile = read line :: Direction
+    return $ (Map.fromList (actions gamestate)) Map.! tile
 
 
 onkeydown :: MVar Int -> Handler Int
@@ -78,22 +64,42 @@ onkeydown userInput key = do
       tryPutMVar userInput key
       return ()
 
-initGUI :: MVar Int -> IO ()
-initGUI userInput = startGUI defaultConfig $ setup userInput
 
-setup :: MVar Int -> Window ->  UI ()
-setup userInput window = do
+gamestateToStrArr :: GameState ThreesState ->  String
+gamestateToStrArr = Matrix.prettyMatrix . Threes.grid . state  
+
+initGUI :: MVar Int -> MVar (GameState ThreesState) -> IO ()
+initGUI userInput newStateChan = startGUI defaultConfig $ setup userInput newStateChan
+
+setup :: MVar Int -> MVar (GameState ThreesState) -> Window ->  UI ()
+setup userInput newStateChan window = do
     liftIO $ putStrLn "SETUP WINDOW"
     threesDir <- loadDirectory "2048-HTML"
     customJSuri <- loadFile "text/javascript" "2048-HTML/custom.js"
     
     body <- getBody window
-    liftIO $ do 
+    runFunction $ ffi trampolineCode customJSuri threesDir
+
+    liftIO $ do  --listen for key events
       putStrLn "registering"
       registerAction <- register (UI.keydown body) $ onkeydown userInput
       registerAction
+    
+    eventTup <- liftIO newEvent 
+    let (writeBoardEvent, triggerWriteBoardEvent) = eventTup
 
-    runFunction $ ffi trampolineCode customJSuri threesDir
+    onEvent writeBoardEvent $ \gamestate -> do
+      liftIO $ putStrLn $ "GOT WRITEBOARD EVENT\n" ++ (gamestateToStrArr gamestate)
+      runFunction $ ffi "writeGameState(%1);" (gamestateToStrArr gamestate)
+
+    liftIO $ forkIO $ do 
+      threadDelay 2000000 --a hack, a new gamestate is triggered before threes-html loads. Wait 2 seconds before listening for events
+      forever $ do --seperate thread for writing the gamestate
+        putStrLn "waiting on new state" 
+        gamestate <- takeMVar newStateChan
+        putStrLn "got new state" 
+        triggerWriteBoardEvent gamestate
+
     return ()
 
 trampolineCode = unlines ["var xhr= new XMLHttpRequest()",

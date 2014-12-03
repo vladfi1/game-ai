@@ -56,8 +56,14 @@ function pressDown() {
   $(window).trigger({ type : 'keydown', which : 40 , keyCode: 40 })
 }
 
+
+function writeGameState(arr) {
+  window.arr = arr;
+  console.log('got new gamestate ' + arr);
+}
+
 window.loadThrees = loadThrees;
 window.pressDown = pressDown;
-
+window.writeGameState = writeGameState;
 onLoad(); //defined in trampoline code
 

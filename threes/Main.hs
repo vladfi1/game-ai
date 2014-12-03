@@ -9,8 +9,6 @@ import Control.Monad.Random
 import qualified Data.Map as Map
 
 import Control.Concurrent
-import Control.Concurrent.Chan
-
 
 import Threes
 import NewGame
@@ -62,7 +60,7 @@ train dir = do
   print score
 
 main = do
-  let guiHumanPlayer = makeGuiHumanPlayer (newMVar False) newEmptyMVar newChan
+  guiHumanPlayer <-  makeGuiHumanPlayer newEmptyMVar newEmptyMVar
   
   setStdGen $ mkStdGen 0
   --testRunner
