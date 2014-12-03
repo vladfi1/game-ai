@@ -271,3 +271,21 @@ GameManager.prototype.tileMatchesAvailable = function () {
 GameManager.prototype.positionsEqual = function (first, second) {
   return first.x === second.x && first.y === second.y;
 };
+
+GameManager.prototype.makeBoardFromState = function(state) {
+  for (var x = 0; x < 4; x++) {
+    for (var y=0; y < 4; y++) {
+      cell = {x:x, y:y};
+      tile = this.grid.cellContent(cell);
+      if (tile) {
+        this.grid.removeTile(tile);
+      }
+      if (state[x][y] > 0) {
+        tile = new Tile(cell, state[x][y]); 
+        this.grid.insertTile(tile);
+      }
+    }
+  }
+  this.actuate();
+}
+//gamemanager.makeBoardFromState([[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]])
