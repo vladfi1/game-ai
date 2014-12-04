@@ -61,5 +61,3 @@ main = do
   setStdGen $ mkStdGen 0
   --testRunner
   train saveDir
-  
-

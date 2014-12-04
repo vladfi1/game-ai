@@ -1,0 +1,143 @@
+Resolving dependencies...
+In order, the following will be installed:
+aeson-0.7.0.4 (latest: 0.8.0.2) (reinstall) changes: mtl-2.1.2 -> 2.2.1
+enumerator-0.4.20 (reinstall) changes: transformers-0.3.0.0 -> 0.4.2.0
+attoparsec-enumerator-0.3.3 (reinstall)
+blaze-builder-enumerator-0.2.0.6 (reinstall) changes: transformers-0.3.0.0 ->
+0.4.2.0
+hmatrix-0.15.2.1 (latest: 0.16.0.6) (new package)
+HaskellNN-0.1.3 (new package)
+monads-tf-0.1.0.2 (reinstall) changes: transformers-0.3.0.0 -> 0.4.2.0
+MonadCatchIO-transformers-0.3.1.2 (reinstall) changes: transformers-0.3.0.0 ->
+0.4.2.0
+network-uri-2.6.0.1 (reinstall) changes: parsec-3.1.3 -> 3.1.7
+websockets-0.9.1.0 (reinstall) changes: mtl-2.1.2 -> 2.2.1, network-2.4.1.2 ->
+2.6.0.2
+zlib-enum-0.2.3.1 (reinstall) changes: transformers-0.3.0.0 -> 0.4.2.0
+snap-core-0.9.6.3 (reinstall) changes: mtl-2.1.2 -> 2.2.1
+snap-server-0.9.4.5 (reinstall) changes: mtl-2.1.2 -> 2.2.1, network-2.4.1.2
+-> 2.6.0.2
+websockets-snap-0.9.0.0 (reinstall) changes: mtl-2.1.2 -> 2.2.1
+threepenny-gui-0.5.0.0 (reinstall) changes: transformers-0.3.0.0 -> 0.4.2.0
+game-ai-0.1.0.0 (reinstall) changes: HaskellNN-0.1.3 added,
+bytestring-0.10.0.2 added, cereal-0.4.1.0 added, cereal-vector-0.2.0.1 added,
+directory-1.2.0.1 added, hmatrix-0.15.2.1 added, lens-4.6 removed,
+monad-loops-0.4.2.1 added, threepenny-gui-0.5.0.0 added
+Configuring aeson-0.7.0.4...
+Building aeson-0.7.0.4...
+Preprocessing library aeson-0.7.0.4...
+[ 1 of 12] Compiling Data.Aeson.Types.Internal ( Data/Aeson/Types/Internal.hs, dist/build/Data/Aeson/Types/Internal.o )
+[ 2 of 12] Compiling Data.Aeson.Types.Class ( Data/Aeson/Types/Class.hs, dist/build/Data/Aeson/Types/Class.o )
+[ 3 of 12] Compiling Data.Aeson.Functions ( Data/Aeson/Functions.hs, dist/build/Data/Aeson/Functions.o )
+[ 4 of 12] Compiling Data.Aeson.Types.Instances ( Data/Aeson/Types/Instances.hs, dist/build/Data/Aeson/Types/Instances.o )
+[ 5 of 12] Compiling Data.Aeson.Types.Generic ( Data/Aeson/Types/Generic.hs, dist/build/Data/Aeson/Types/Generic.o )
+[ 6 of 12] Compiling Data.Aeson.Types ( Data/Aeson/Types.hs, dist/build/Data/Aeson/Types.o )
+[ 7 of 12] Compiling Data.Aeson.Parser.Internal ( Data/Aeson/Parser/Internal.hs, dist/build/Data/Aeson/Parser/Internal.o )
+[ 8 of 12] Compiling Data.Aeson.Parser ( Data/Aeson/Parser.hs, dist/build/Data/Aeson/Parser.o )
+[ 9 of 12] Compiling Data.Aeson.Encode ( Data/Aeson/Encode.hs, dist/build/Data/Aeson/Encode.o )
+[10 of 12] Compiling Data.Aeson.Generic ( Data/Aeson/Generic.hs, dist/build/Data/Aeson/Generic.o )
+[11 of 12] Compiling Data.Aeson       ( Data/Aeson.hs, dist/build/Data/Aeson.o )
+[12 of 12] Compiling Data.Aeson.TH    ( Data/Aeson/TH.hs, dist/build/Data/Aeson/TH.o )
+Failed to install aeson-0.7.0.4
+Configuring enumerator-0.4.20...
+Building enumerator-0.4.20...
+Preprocessing library enumerator-0.4.20...
+[ 1 of 10] Compiling Data.Enumerator.Util ( lib/Data/Enumerator/Util.hs, dist/build/Data/Enumerator/Util.o )
+[ 2 of 10] Compiling Data.Enumerator.Internal ( lib/Data/Enumerator/Internal.hs, dist/build/Data/Enumerator/Internal.o )
+[ 3 of 10] Compiling Data.Enumerator.List[boot] ( lib/Data/Enumerator/List.hs-boot, dist/build/Data/Enumerator/List.o-boot )
+[ 4 of 10] Compiling Data.Enumerator.Compatibility ( lib/Data/Enumerator/Compatibility.hs, dist/build/Data/Enumerator/Compatibility.o )
+[ 5 of 10] Compiling Data.Enumerator  ( lib/Data/Enumerator.hs, dist/build/Data/Enumerator.o )
+[ 6 of 10] Compiling Data.Enumerator.List ( lib/Data/Enumerator/List.hs, dist/build/Data/Enumerator/List.o )
+[ 7 of 10] Compiling Data.Enumerator.Binary ( lib/Data/Enumerator/Binary.hs, dist/build/Data/Enumerator/Binary.o )
+[ 8 of 10] Compiling Data.Enumerator.IO ( lib/Data/Enumerator/IO.hs, dist/build/Data/Enumerator/IO.o )
+[ 9 of 10] Compiling Data.Enumerator.Text ( lib/Data/Enumerator/Text.hs, dist/build/Data/Enumerator/Text.o )
+[10 of 10] Compiling Data.Enumerator.Trans ( lib/Data/Enumerator/Trans.hs, dist/build/Data/Enumerator/Trans.o )
+Failed to install enumerator-0.4.20
+[1 of 2] Compiling Config           ( /tmp/hmatrix-0.15.2.1-29757/hmatrix-0.15.2.1/Config.hs, /tmp/hmatrix-0.15.2.1-29757/hmatrix-0.15.2.1/dist/setup/Config.o )
+[2 of 2] Compiling Main             ( /tmp/hmatrix-0.15.2.1-29757/hmatrix-0.15.2.1/dist/setup/setup.hs, /tmp/hmatrix-0.15.2.1-29757/hmatrix-0.15.2.1/dist/setup/Main.o )
+Linking /tmp/hmatrix-0.15.2.1-29757/hmatrix-0.15.2.1/dist/setup/setup ...
+Configuring hmatrix-0.15.2.1...
+Checking foreign libraries... FAIL
+ *** Sorry, I can't link GSL.
+ *** Please make sure that the appropriate -dev packages are installed.
+ *** You can also specify the required libraries using
+ *** cabal install hmatrix --configure-option=link:lib1,lib2,lib3,etc.
+Failed to install hmatrix-0.15.2.1
+Configuring monads-tf-0.1.0.2...
+Building monads-tf-0.1.0.2...
+Preprocessing library monads-tf-0.1.0.2...
+[ 1 of 21] Compiling Control.Monad.Identity ( Control/Monad/Identity.hs, dist/build/Control/Monad/Identity.o )
+[ 2 of 21] Compiling Control.Monad.Cont.Class ( Control/Monad/Cont/Class.hs, dist/build/Control/Monad/Cont/Class.o )
+[ 3 of 21] Compiling Control.Monad.Trans ( Control/Monad/Trans.hs, dist/build/Control/Monad/Trans.o )
+[ 4 of 21] Compiling Control.Monad.Error.Class ( Control/Monad/Error/Class.hs, dist/build/Control/Monad/Error/Class.o )
+[ 5 of 21] Compiling Control.Monad.Error ( Control/Monad/Error.hs, dist/build/Control/Monad/Error.o )
+[ 6 of 21] Compiling Control.Monad.List ( Control/Monad/List.hs, dist/build/Control/Monad/List.o )
+[ 7 of 21] Compiling Control.Monad.Reader.Class ( Control/Monad/Reader/Class.hs, dist/build/Control/Monad/Reader/Class.o )
+[ 8 of 21] Compiling Control.Monad.Reader ( Control/Monad/Reader.hs, dist/build/Control/Monad/Reader.o )
+[ 9 of 21] Compiling Control.Monad.State.Class ( Control/Monad/State/Class.hs, dist/build/Control/Monad/State/Class.o )
+[10 of 21] Compiling Control.Monad.Writer.Class ( Control/Monad/Writer/Class.hs, dist/build/Control/Monad/Writer/Class.o )
+[11 of 21] Compiling Control.Monad.RWS.Class ( Control/Monad/RWS/Class.hs, dist/build/Control/Monad/RWS/Class.o )
+[12 of 21] Compiling Control.Monad.RWS.Lazy ( Control/Monad/RWS/Lazy.hs, dist/build/Control/Monad/RWS/Lazy.o )
+[13 of 21] Compiling Control.Monad.RWS ( Control/Monad/RWS.hs, dist/build/Control/Monad/RWS.o )
+[14 of 21] Compiling Control.Monad.RWS.Strict ( Control/Monad/RWS/Strict.hs, dist/build/Control/Monad/RWS/Strict.o )
+[15 of 21] Compiling Control.Monad.State.Lazy ( Control/Monad/State/Lazy.hs, dist/build/Control/Monad/State/Lazy.o )
+[16 of 21] Compiling Control.Monad.State ( Control/Monad/State.hs, dist/build/Control/Monad/State.o )
+[17 of 21] Compiling Control.Monad.State.Strict ( Control/Monad/State/Strict.hs, dist/build/Control/Monad/State/Strict.o )
+[18 of 21] Compiling Control.Monad.Writer.Lazy ( Control/Monad/Writer/Lazy.hs, dist/build/Control/Monad/Writer/Lazy.o )
+[19 of 21] Compiling Control.Monad.Writer ( Control/Monad/Writer.hs, dist/build/Control/Monad/Writer.o )
+[20 of 21] Compiling Control.Monad.Writer.Strict ( Control/Monad/Writer/Strict.hs, dist/build/Control/Monad/Writer/Strict.o )
+[21 of 21] Compiling Control.Monad.Cont ( Control/Monad/Cont.hs, dist/build/Control/Monad/Cont.o )
+Failed to install monads-tf-0.1.0.2
+Configuring network-uri-2.6.0.1...
+Building network-uri-2.6.0.1...
+Preprocessing library network-uri-2.6.0.1...
+[1 of 1] Compiling Network.URI      ( Network/URI.hs, dist/build/Network/URI.o )
+Failed to install network-uri-2.6.0.1
+Configuring websockets-0.9.1.0...
+Building websockets-0.9.1.0...
+Preprocessing library websockets-0.9.1.0...
+[ 1 of 11] Compiling Network.WebSockets.Hybi13.Mask ( src/Network/WebSockets/Hybi13/Mask.hs, dist/build/Network/WebSockets/Hybi13/Mask.o )
+[ 2 of 11] Compiling Network.WebSockets.Http ( src/Network/WebSockets/Http.hs, dist/build/Network/WebSockets/Http.o )
+[ 3 of 11] Compiling Network.WebSockets.Types ( src/Network/WebSockets/Types.hs, dist/build/Network/WebSockets/Types.o )
+[ 4 of 11] Compiling Network.WebSockets.Stream ( src/Network/WebSockets/Stream.hs, dist/build/Network/WebSockets/Stream.o )
+[ 5 of 11] Compiling Network.WebSockets.Hybi13.Demultiplex ( src/Network/WebSockets/Hybi13/Demultiplex.hs, dist/build/Network/WebSockets/Hybi13/Demultiplex.o )
+[ 6 of 11] Compiling Network.WebSockets.Hybi13 ( src/Network/WebSockets/Hybi13.hs, dist/build/Network/WebSockets/Hybi13.o )
+[ 7 of 11] Compiling Network.WebSockets.Protocol ( src/Network/WebSockets/Protocol.hs, dist/build/Network/WebSockets/Protocol.o )
+[ 8 of 11] Compiling Network.WebSockets.Connection ( src/Network/WebSockets/Connection.hs, dist/build/Network/WebSockets/Connection.o )
+[ 9 of 11] Compiling Network.WebSockets.Server ( src/Network/WebSockets/Server.hs, dist/build/Network/WebSockets/Server.o )
+[10 of 11] Compiling Network.WebSockets.Client ( src/Network/WebSockets/Client.hs, dist/build/Network/WebSockets/Client.o )
+[11 of 11] Compiling Network.WebSockets ( src/Network/WebSockets.hs, dist/build/Network/WebSockets.o )
+Failed to install websockets-0.9.1.0
+cabal: Error: some packages failed to install:
+HaskellNN-0.1.3 depends on hmatrix-0.15.2.1 which failed to install.
+MonadCatchIO-transformers-0.3.1.2 depends on monads-tf-0.1.0.2 which failed to
+install.
+aeson-0.7.0.4 failed during the building phase. The exception was:
+ExitFailure 1
+attoparsec-enumerator-0.3.3 depends on enumerator-0.4.20 which failed to
+install.
+blaze-builder-enumerator-0.2.0.6 depends on enumerator-0.4.20 which failed to
+install.
+enumerator-0.4.20 failed during the building phase. The exception was:
+ExitFailure 1
+game-ai-0.1.0.0 depends on websockets-0.9.1.0 which failed to install.
+hmatrix-0.15.2.1 failed during the building phase. The exception was:
+ExitFailure 1
+monads-tf-0.1.0.2 failed during the building phase. The exception was:
+ExitFailure 1
+network-uri-2.6.0.1 failed during the building phase. The exception was:
+ExitFailure 1
+snap-core-0.9.6.3 depends on monads-tf-0.1.0.2 which failed to install.
+snap-server-0.9.4.5 depends on monads-tf-0.1.0.2 which failed to install.
+threepenny-gui-0.5.0.0 depends on websockets-0.9.1.0 which failed to install.
+websockets-0.9.1.0 failed during the building phase. The exception was:
+ExitFailure 1
+websockets-snap-0.9.0.0 depends on websockets-0.9.1.0 which failed to install.
+zlib-enum-0.2.3.1 depends on enumerator-0.4.20 which failed to install.
+
+
+
+ hmatrix-0.15.2.1 
+  monads-tf-0.1.0.2
+ enumerator-0.4.20
+ websockets-0.9.1.0 
