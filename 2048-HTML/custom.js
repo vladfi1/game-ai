@@ -57,9 +57,30 @@ function pressDown() {
 }
 
 
-function writeGameState(arr) {
-  window.arr = arr;
-  console.log('got new gamestate ' + arr);
+function writeGameState(arrstring) {
+  debugger;
+  console.log('got new gamestate\n' + arrstring);
+  //var arr = arrstring.trim().split('\n').map(function(line) {
+  //  console.log('line ' + line)
+  //  var withoutparens = line.replace('(', '').replace(')', '').trim();
+  //  console.log("map returns " + withoutparens.split(" "));
+  //  return withoutparens.split(" ");
+  //});
+  //(function transpose(arr) {
+  //  var tmp;
+  //  for (var x=0; x< arr.length; x++) {
+  //    for (var y = x + 1; y < arr[x].length; y ++) {
+  //      console.log('x y ' + x + ' ' + y);
+  //      console.log('arr[x] ' + arr[x]) ;
+  //      console.log('arr[y] ' + arr[y]) ;
+  //      tmp = arr[x][y];
+  //      arr[x][y] = arr[y][x];
+  //      arr[y][x] = tmp;
+  //    }
+  //  }
+  //})(arr);
+  //console.log(arr);
+  //window.gamemanager.makeBoardFromState(arr);
 }
 
 window.loadThrees = loadThrees;
