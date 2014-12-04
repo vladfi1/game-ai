@@ -2,8 +2,11 @@ module Utils where
 
 import Data.List (maximumBy)
 import Data.Ord (comparing)
-import Data.Vector (Vector, (//))
-import qualified Data.Vector as Vector
+
+import qualified Data.Vector as V
+
+import Data.Vector.Generic (Vector, (//))
+import qualified Data.Vector.Generic as Vector
 
 import Data.IntMap (IntMap)
 import qualified Data.IntMap as IntMap
@@ -47,17 +50,19 @@ modifyList _ _ [] = error "Can't update empty list!"
 modifyList 0 f (a:as) = (f a):as
 modifyList n f (a:as) = a : modifyList (n-1) f as
 
-modifyVector :: Vector a -> [(Int, a -> a)] -> Vector a
+modifyVector :: (Vector v a) => v a -> [(Int, a -> a)] -> v a
 modifyVector vec ifs = vec // [(i, f (vec Vector.! i)) | (i, f) <- ifs]
 
-toVector :: (Bounded a, Enum a) => (a -> b) -> Vector b
+toVector :: (Bounded a, Enum a, Vector v b) => (a -> b) -> v b
 toVector f = Vector.fromList $ map f allValues
 
-fromVector :: (Bounded a, Enum a) => Vector b -> a -> b
+fromVector :: (Bounded a, Enum a, Vector v b) => v b -> a -> b
 fromVector v = (v Vector.!) . fromEnum
 
 mem :: (Bounded a, Enum a) => (a -> b) -> (a -> b)
-mem = fromVector . toVector
+mem = fromVector . toVector'
+  where toVector' = toVector :: (Bounded a, Enum a) => (a -> b) -> V.Vector b
+        
 
 fromMap :: (Ord k) => Map k a -> k -> a
 fromMap = (Map.!)

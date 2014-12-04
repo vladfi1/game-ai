@@ -4,6 +4,8 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
+
 {-# LANGUAGE UndecidableInstances #-}
 
 module NewGame where
@@ -17,6 +19,7 @@ import qualified Data.Map as Map
 
 import Utils (maximumByKey, iterateN)
 import Discrete
+import Convertible
 
 type family Agent s
 type family Action s
@@ -35,6 +38,9 @@ data GameState s =
 isPlayerState PlayerState {} = True
 isPlayerState _ = False
 
+instance Convertible (GameState s) s where
+  convert = state
+
 instance (Show s, Show (Agent s), Show (Action s)) => Show (GameState s) where
   show PlayerState {state, agent, actions} =
     (show agent) ++ " to move:\n" ++ (show state) ++ "Legal moves: " ++ (show $ map fst actions)
@@ -43,6 +49,11 @@ terminal PlayerState {actions = []} = True
 terminal _ = False
 
 type Heuristic s = GameState s -> Agent s -> Double
+type Heuristic' s = s -> Agent s -> Double
+
+toHeuristic :: Heuristic' s -> Heuristic s
+toHeuristic = (. state)
+
 type Player s m = GameState s -> m (Action s)
 
 lookAheadEval :: forall s m. Heuristic s -> Heuristic s

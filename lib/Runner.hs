@@ -1,6 +1,5 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE ImpredicativeTypes #-}
 
 module Runner where
 
@@ -35,7 +34,7 @@ recordGame dirName initial player = do
   ByteString.writeFile fileName $ encode (game', state final)
 
 readGame fileName = do
-  putStrLn fileName
+  --putStrLn fileName
   bytes <- ByteString.readFile fileName
   return $ decode bytes
 
@@ -46,16 +45,15 @@ readDir dirName = do
   games <- forM gameFiles readGame
   return $ rights games
 
-type Heuristic' s = s -> Agent s -> Double
-
 --savedToData :: (Datum s, Bounded (Agent s), Enum (Agent s)) => Heuristic' s -> Saved s -> DataSet s
 savedToData :: (Convertible s Datum, Bounded (Agent s), Enum (Agent s)) =>
   Heuristic' s -> Saved s -> DataSet s
 savedToData score (game, final) = (final, value) : [(s, value) | (s, _) <- game]
-  where value = convert $ toVector (score final)
+  where value = toVector (score final)
 
 
 loadData dirName score = do
-  games <- readDir dirName				
+  putStrLn $ "Loading data from " ++ dirName
+  games <- readDir dirName
   return $ games >>= (savedToData score)
 

@@ -40,19 +40,26 @@ testRunner = do
 modelConfig = ModelConfig
   { activation = Sigmoid
   , costModel = MeanSquared
-  , layers = [1]
-  , regularization = 0.001
+  , layers = [16, 16, 16, 1]
+  , regularization = 1
+  }
+
+trainConfig = TrainConfig
+  { algorithm = LBFGS
+  , precision = 0.0001
+  , iterations = 100
   }
 
 train dir = do
   dataset <- loadData dir scoreThrees
-  
   model <- initNN modelConfig
-  
-  return ()
-  
+  print $ scoreNN model dataset
+  let (trained, score) = trainNN trainConfig dataset model
+  print score
 
 main = do
   setStdGen $ mkStdGen 0
-  testRunner
+  --testRunner
+  train saveDir
+  
 

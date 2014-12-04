@@ -1,7 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
---{-# LANGUAGE ImpredicativeTypes #-}
 
 module TrainNN where
 
@@ -16,13 +15,19 @@ import Control.Monad.Random
 import Control.Applicative ((<$>))
 
 import Convertible
+import NewGame
+import Utils (fromVector)
 
 type Datum = Vector Double
+type Data = Matrix Double
 
 type DataSet s = [(s, Datum)]
 
---prepare :: DataSet s -> (Matrix Double, Matrix Double)
-
+prepare :: (Convertible s Datum) => DataSet s -> (Data, Data)
+prepare dataset = (inMat, outMat)
+  where (input, output) = unzip dataset
+        inMat = fromRows . (map convert) $ input
+        outMat = fromRows output
 
 data ModelConfig = ModelConfig
   { activation      :: Activation
@@ -42,10 +47,16 @@ initNN ModelConfig {activation, costModel, layers, regularization} =
   initializeModel activation costModel layers regularization <$> getSplit
 
 trainNN :: (Convertible s Datum) =>
-  TrainConfig -> DataSet s -> GenericModel -> GenericModel
+  TrainConfig -> DataSet s -> GenericModel -> (GenericModel, Double)
 trainNN TrainConfig {algorithm, precision, iterations} dataset model =
-  let (input, output) = unzip dataset
-      inMat = fromRows . (map convert) $ input
-      outMat = fromRows output
-  in trainModel model algorithm precision iterations inMat outMat
+  let (inMat, outMat) = prepare dataset
+      trained = trainModel model algorithm precision iterations inMat outMat
+      score = scoreNN trained dataset
+  in (trained, score)
+
+scoreNN :: (Convertible s Datum) => GenericModel -> DataSet s -> Double
+scoreNN GenericModel {cost, net} = uncurry (getCostFunction cost $ net) . prepare
+
+toHeuristic :: (Convertible s Datum, Bounded (Agent s), Enum (Agent s)) => GenericModel -> Heuristic' s
+toHeuristic model = fromVector . (getOutput model) . convert
 
