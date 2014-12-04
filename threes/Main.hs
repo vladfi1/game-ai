@@ -8,6 +8,7 @@ import Control.Monad
 import Control.Monad.Random
 import qualified Data.Map as Map
 
+import Discrete (choose)
 import Threes
 import NewGame
 import Runner
@@ -51,10 +52,11 @@ trainConfig = TrainConfig
   }
 
 train dir = do
-  dataset <- loadData dir scoreThreesUnary
+  dataset <- loadData dir scoreThreesUnary symmetrize
+  subsampled <- choose 100 dataset
   model <- initNN modelConfig
-  print $ scoreNN model dataset
-  let (trained, score) = trainNN trainConfig dataset model
+  print $ scoreNN model subsampled
+  let (trained, score) = trainNN trainConfig subsampled model
   print score
 
 main = do
