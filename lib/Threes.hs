@@ -140,6 +140,14 @@ reassemble dir rows = let
   transposed = if transposes dir then transpose mat else mat
   in transposed
 
+allGrids :: Grid -> [Grid]
+allGrids grid = do
+  transposed <- [grid, transpose grid]
+  let rows = Matrix.toLists grid
+  reversed <- [rows, map reverse rows]
+  swapped <- [reversed, reverse reversed]
+  return $ Matrix.fromLists swapped
+
 pushGrid :: Direction -> Grid -> ([Row], [Int])
 pushGrid dir grid = (pushed, open)
   where rows = disassemble dir grid
@@ -269,5 +277,8 @@ countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
 
-
+symmetrize :: ThreesState -> [ThreesState]
+symmetrize threes = do
+  newGrid <- allGrids (grid threes)
+  return $ threes {grid = newGrid}
 
