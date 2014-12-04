@@ -19,6 +19,7 @@ import NewGame
 import Threes
 import qualified Threes
 import System.IO.Unsafe
+import Prelude  hiding (Left, Right)
 
 
 {-----------------------------------------------------------------------------
@@ -27,20 +28,19 @@ import System.IO.Unsafe
 --main :: IO ()
 --main = startGUI defaultConfig setup
 
-keyToDirection :: Int -> String
+keyToDirection :: Int -> Direction 
 keyToDirection key =  (case key of 
-      37 -> "Left"
-      38 -> "Up"
-      39 -> "Right"
-      40 -> "Down"
-      otherwise -> "POOP")
+      37 -> Left
+      38 -> Up
+      39 -> Right
+      40 -> Down)
 
-makeGuiHumanPlayer :: IO (MVar Int) -> IO (MVar (GameState ThreesState)) -> IO (GameState ThreesState -> IO (GameState ThreesState))
-makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
+makeGuiHumanPlayer :: IO (GameState ThreesState -> IO (Direction))
+makeGuiHumanPlayer  = do
 
   putStrLn "Initing"
-  userInput <- threepennyToMainIO
-  gamestateChannel <- mainToThreePennyIO 
+  userInput <- newEmptyMVar
+  gamestateChannel <- newEmptyMVar 
 
   forkIO $ initGUI userInput gamestateChannel
   
@@ -50,15 +50,14 @@ makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
 
   return $ \gamestate -> do
     
-    let validDirections = map (show . fst) (actions gamestate)
+    let validDirections = map fst (actions gamestate)
     let isValidInput key = (between 37 40 key) && ((keyToDirection key) `elem` validDirections)
     let getUserInput =  fmap keyToDirection $ (iterateUntil (isValidInput) (takeMVar userInput)) 
 
     toThreePenny gamestate
-    line <- getUserInput
-    putStrLn $ "Got Line " ++ show line
-    let tile = read line :: Direction
-    return $ (Map.fromList (actions gamestate)) Map.! tile
+    direction <- getUserInput
+    putStrLn $ "Got Direction " ++ show direction
+    return direction
 
 
 onkeydown :: MVar Int -> Handler Int
