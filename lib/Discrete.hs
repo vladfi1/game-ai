@@ -119,13 +119,14 @@ bernoulli :: (MonadDiscrete w m) => w -> m Bool
 bernoulli p = sample [(False, one-p), (True, p)]
 
 choose :: (Field.C w, MonadDiscrete w m) => Int -> [a] -> m [a]
-choose 0 _ = return []
-choose _ [] = error "Can't choose from empty set."
-choose k (a:as) = do
-  pick <- bernoulli $ (fromIntegral k) / (one + (fromIntegral $ length as))
-  if pick
-    then liftM (a :) (choose (k-1) as)
-    else choose k as
+choose k list = go k (length list) list
+  where go 0 _ _ = return []
+        go _ 0 _ = error "Can't choose from empty list."
+        go k n (a:as) = do
+          pick <- bernoulli $ (fromIntegral k) / (fromIntegral n)
+          if pick
+            then liftM (a :) (go (k-1) (n-1) as)
+            else go k (n-1) as
 
 --test :: (MonadDiscrete w m) => m a
 test = do
