@@ -40,7 +40,7 @@ testRunner = do
 modelConfig = ModelConfig
   { activation = HyperbolicTangent
   , costModel = MeanSquared
-  , layers = [64, 16, 4]
+  , layers = [64, 16, numTileClasses]
   , regularization = 0.1
   }
 
@@ -51,7 +51,7 @@ trainConfig = TrainConfig
   }
 
 train dir = do
-  dataset <- loadData dir scoreThreesBits
+  dataset <- loadData dir scoreThreesUnary
   model <- initNN modelConfig
   print $ scoreNN model dataset
   let (trained, score) = trainNN trainConfig dataset model
@@ -61,3 +61,4 @@ main = do
   setStdGen $ mkStdGen 0
   --testRunner
   train saveDir
+

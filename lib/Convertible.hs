@@ -1,5 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE OverlappingInstances #-}
 
 module Convertible where
@@ -9,6 +10,9 @@ import Data.Foldable
 import Data.Packed.Vector (Vector)
 import qualified Data.Packed.Vector as Vector
 import Foreign.Storable
+
+import Data.BitVector (BV)
+import qualified Data.BitVector as BV
 
 class Convertible a b where
   convert :: a -> b
@@ -34,6 +38,9 @@ instance (Num a) => Convertible Bool a where
 
 instance (Storable a) => Convertible a (Vector a) where
   convert a = Vector.fromList [a]
+
+--instance (Convertible Bool b, Storable b) => Convertible BV (Vector b) where
+--  convert = convert . BV.toBits
 
 class (Convertible a b, Convertible b a) => Isomorphic a b
 

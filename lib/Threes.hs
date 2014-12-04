@@ -1,13 +1,15 @@
---{-# LANGUAGE NoMonomorphismRestriction #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE OverlappingInstances #-}
 
 module Threes where
 
 import Prelude hiding (Left, Right, foldr, maximum)
+import Debug.Trace
 
 --import qualified Data.Map
 import Data.Maybe (catMaybes)
@@ -27,7 +29,7 @@ import Data.Foldable
 import qualified Control.Monad.Random as Random
 import Control.Monad.State hiding (state)
 
-import Utils (range, enumerate, allValues, modifyList, getBits)
+import Utils (range, enumerate, allValues, modifyList)
 import Discrete
 --import Instances
 import NewGame
@@ -36,6 +38,7 @@ import Convertible
 
 import Data.Word
 import Data.Bits
+import qualified Data.BitVector as BV
 
 import Foreign.Storable
 
@@ -83,7 +86,9 @@ type instance Agent ThreesState = OnePlayer
 type instance Action ThreesState = Direction
 
 instance (Storable a, Num a) => Convertible ThreesState (HVector.Vector a) where
-  convert = convert . (>>= tileToBits) . Matrix.toList . grid
+  convert threes = x--traceShow y x
+    where x = convert . (>>= tileToBits) . Matrix.toList . grid $ threes
+          --y = (>>= tileToBits) . Matrix.toList . grid $ threes
 
 width = 4
 height = 4
@@ -230,24 +235,39 @@ scoreGrid = getSum . (foldMap $ Sum . scoreTile)
 scoreThrees :: (Num a) => ThreesState -> OnePlayer -> a
 scoreThrees = const . fromIntegral . scoreGrid . grid
 
-classifyTile :: Tile -> Word8
+
+basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
+basicHeuristic game You =
+  fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
+  where g = grid $ state game
+
+classifyTile :: Tile -> Int
 classifyTile x
   | x <= 3    = fromIntegral x
   | otherwise = 1 + classifyTile (shiftR x 1)
 
+numTileClasses :: Int
+numTileClasses = 16
+
 tileToBits :: Tile -> [Bool]
-tileToBits = (take 4) . getBits . classifyTile
+tileToBits = BV.toBits . (BV.bitVec 4) . classifyTile
+
+unary :: Int -> Int -> [Bool]
+unary width n = (replicate n True) ++ (replicate (width - n) False)
+
+tileToUnary :: Tile -> [Bool]
+tileToUnary = (unary numTileClasses) . classifyTile
 
 scoreThreesBits :: ThreesState -> OnePlayer -> [Bool]
 scoreThreesBits = const . tileToBits . maximum . grid
+
+scoreThreesUnary :: ThreesState -> OnePlayer -> [Bool]
+scoreThreesUnary = const . tileToUnary . maximum . grid
 
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
 
-basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
-basicHeuristic game You =
-  fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
-  where g = grid $ state game
+
 

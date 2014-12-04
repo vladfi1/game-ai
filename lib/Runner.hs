@@ -51,8 +51,9 @@ readDir dirName = do
 
 --savedToData :: (Datum s, Bounded (Agent s), Enum (Agent s)) => Heuristic' s -> Saved s -> DataSet s
 savedToData :: forall s v. (Convertible s Datum, Bounded (Agent s), Enum (Agent s), Convertible v Datum) =>
-  (s -> Agent s -> v) -> Saved s -> DataSet s
-savedToData score (game, final) = (final, value) : [(s, value) | (s, _) <- game]
+  (s -> Agent s -> v) -> Saved s -> DataSet
+savedToData score (game, final) =
+  (convert final, value) : [(convert s, value) | (s, _) <- game]
   where value = foldMap convert ((toVector $ score final) :: Vector v)
 
 

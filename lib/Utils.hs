@@ -75,6 +75,3 @@ invert packed =
       bToAs = foldl (\m (a, b) -> Map.insert b (a : Map.findWithDefault [] b m) m) Map.empty unpacked
     in Map.assocs bToAs
 
-getBits :: (Bits a) => a -> [Bool]
-getBits a = [testBit a i | i <- range $ bitSize a]
-
