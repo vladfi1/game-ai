@@ -56,7 +56,8 @@ function pressDown() {
   $(window).trigger({ type : 'keydown', which : 40 , keyCode: 40 })
 }
 
-function writeGameState(arrstring) {
+function writeGameState(arrstring, nexttile) {
+  console.log("writeGameState \n" + arrstring);
   var arr = arrstring.trim().split('\n').map(function(line) {
     var withoutparens = line.replace('(', '').replace(')', '').trim();
     return withoutparens.split(/\s+/);
@@ -71,7 +72,8 @@ function writeGameState(arrstring) {
       }
     }
   })(arr);
-  window.gamemanager.makeBoardFromState(arr);
+  window.gamemanager.makeBoardFromState(arr, nexttile);
+  return 0;
 }
 
 window.loadThrees = loadThrees;

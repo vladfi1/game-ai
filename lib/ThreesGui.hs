@@ -45,18 +45,16 @@ makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
   forkIO $ initGUI userInput gamestateChannel
   
   let between a b c = (a <= c) && (c <= b)
-  let toBrowser gamestate = putMVar gamestateChannel gamestate
+  let toThreePenny gamestate = putMVar gamestateChannel gamestate
   let validDirections gamestate = map fst (actions gamestate)
 
   return $ \gamestate -> do
     
     let validDirections = map (show . fst) (actions gamestate)
     let isValidInput key = (between 37 40 key) && ((keyToDirection key) `elem` validDirections)
+    let getUserInput =  fmap keyToDirection $ (iterateUntil (isValidInput) (takeMVar userInput)) 
 
-    let getUserInput =  fmap keyToDirection $ iterateUntil (isValidInput) (takeMVar userInput)
-
-    -- putStrLn $ actions gamestate 
-    toBrowser gamestate
+    toThreePenny gamestate
     line <- getUserInput
     putStrLn $ "Got Line " ++ show line
     let tile = read line :: Direction
@@ -74,6 +72,9 @@ gamestateToStrArr = Matrix.prettyMatrix . Threes.grid . state
 
 initGUI :: MVar Int -> MVar (GameState ThreesState) -> IO ()
 initGUI userInput newStateChan = startGUI defaultConfig $ setup userInput newStateChan
+
+gamestateToBrowser :: String -> Int -> JSFunction () 
+gamestateToBrowser =  ffi "writeGameState(%1, %2);" --write gamestate to 
 
 setup :: MVar Int -> MVar (GameState ThreesState) -> Window ->  UI ()
 setup userInput newStateChan window = do
@@ -94,7 +95,8 @@ setup userInput newStateChan window = do
 
     onEvent writeBoardEvent $ \gamestate -> do
       liftIO $ putStrLn $ "GOT WRITEBOARD EVENT\n" ++ (gamestateToStrArr gamestate)
-      runFunction $ ffi "writeGameState(%1);" (gamestateToStrArr gamestate)
+      runFunction $ gamestateToBrowser (gamestateToStrArr gamestate) ((nextTile . state) gamestate)
+      liftIO $ putStrLn $ "EMITTED WRITEBOARD EVENT\n"
 
     liftIO $ forkIO $ do 
       threadDelay 2000000 --a hack, a new gamestate is triggered before threes-html loads. Wait 2 seconds before listening for events

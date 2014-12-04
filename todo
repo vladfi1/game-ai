@@ -1,0 +1,5 @@
+fix "sometimes it takes a bit to communicate to js" error
+fix "sometimes GameManager not defined, LocalStorageManger etc"
+js is blank on input
+make smooth transition
+remove threadDelay 2000000

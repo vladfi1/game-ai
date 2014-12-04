@@ -8,6 +8,9 @@ function HTMLActuator() {
 }
 
 HTMLActuator.prototype.actuate = function (grid, metadata) {
+  //if (!grid) {
+  //  debugger;
+  //}
   var self = this;
 
   window.requestAnimationFrame(function () {
@@ -21,16 +24,16 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
       });
     });
 
-    self.updateScore(metadata.score);
-    self.updateBestScore(metadata.bestScore);
+    //self.updateScore(metadata.score);
+    //self.updateBestScore(metadata.bestScore);
 
-    if (metadata.terminated) {
-      if (metadata.over) {
-        self.message(false); // You lose
-      } else if (metadata.won) {
-        self.message(true); // You win!
-      }
-    }
+    //if (metadata.terminated) {
+    //  if (metadata.over) {
+    //    self.message(false); // You lose
+    //  } else if (metadata.won) {
+    //    self.message(true); // You win!
+    //  }
+    //}
 
   });
 };

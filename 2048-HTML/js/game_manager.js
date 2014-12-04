@@ -1,16 +1,45 @@
 console.log("game_manager loaded");
+
 function GameManager(size, InputManager, Actuator, StorageManager) {
   this.size           = size; // Size of the grid
   this.inputManager   = new InputManager;
   this.storageManager = new StorageManager;
   this.actuator       = new Actuator;
-
   this.startTiles     = 2;
+  
+  this.nextTile = {
+    actuator: (function makeActuator() {
+      var nextTileActuator = new Actuator
+      nextTileActuator.tileContainer    = document.querySelector("#next-tile-container");
+      nextTileActuator.scoreContainer   = document.querySelector("#next-tile-dummy-score-container");
+      nextTileActuator.bestContainer    = document.querySelector("#next-tile-dummy-best-container");
+      nextTileActuator.messageContainer = document.querySelector("#next-tile-dummy-game-message");
+      return nextTileActuator;
+    })(),
+    grid:(function() {
+      var nextTileGrid = new Grid(1);
+      nextTileGrid.insertTile(new Tile({x:0, y:0}, 22));
+      return nextTileGrid;
+    })(),
+    actuate:function() {
+      this.actuator.actuate(this.grid);
+    },
+    set:function(val) {
+      var currTile = this.grid.cellContent({x:0, y:0});
+      if (currTile) {
+        this.grid.removeTile(currTile);
+      }
+      this.grid.insertTile(new Tile({x:0, y:0}, val));
+      this.actuate();
+    }
+  }
 
-  this.inputManager.on("move", this.move.bind(this));
+
+
+  //this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
-
+  
   this.setup();
 }
 
@@ -36,24 +65,16 @@ GameManager.prototype.isGameTerminated = function () {
 GameManager.prototype.setup = function () {
   var previousState = this.storageManager.getGameState();
 
-  // Reload the game from a previous game if present
-  //if (previousState) {
-  //  this.grid        = new Grid(previousState.grid.size,
-  //                              previousState.grid.cells); // Reload grid
-  //  this.score       = previousState.score;
-  //  this.over        = previousState.over;
-  //  this.won         = previousState.won;
-  //  this.keepPlaying = previousState.keepPlaying;
-  //} else {
-    this.grid        = new Grid(this.size);
-    this.score       = 0;
-    this.over        = false;
-    this.won         = false;
-    this.keepPlaying = false;
+  this.grid        = new Grid(this.size);
+  this.score       = 0;
+  this.over        = false;
+  this.won         = false;
+  this.keepPlaying = false;
 
-    // Add the initial tiles
-    this.addStartTiles();
-  //}
+  // Add the initial tiles
+  this.addStartTiles();
+  
+
 
   // Update the actuator
   this.actuate();
@@ -89,13 +110,8 @@ GameManager.prototype.actuate = function () {
     this.storageManager.setGameState(this.serialize());
   }
 
-  this.actuator.actuate(this.grid, {
-    score:      this.score,
-    over:       this.over,
-    won:        this.won,
-    bestScore:  this.storageManager.getBestScore(),
-    terminated: this.isGameTerminated()
-  });
+  this.actuator.actuate(this.grid);
+  this.nextTile.actuate();
 
 };
 
@@ -272,7 +288,7 @@ GameManager.prototype.positionsEqual = function (first, second) {
   return first.x === second.x && first.y === second.y;
 };
 
-GameManager.prototype.makeBoardFromState = function(state) {
+GameManager.prototype.makeBoardFromState = function(state, nexttile) {
   for (var x = 0; x < 4; x++) {
     for (var y=0; y < 4; y++) {
       cell = {x:x, y:y};
@@ -286,6 +302,8 @@ GameManager.prototype.makeBoardFromState = function(state) {
       }
     }
   }
+  if (nexttile != undefined) {
+    this.nextTile.set(nexttile);
+  }
   this.actuate();
 }
-//gamemanager.makeBoardFromState([[2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2], [2, 2, 2, 2]])

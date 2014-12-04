@@ -6,6 +6,10 @@ function Grid(size, previousState) {
 
 // Build a grid of the specified size
 Grid.prototype.empty = function () {
+  if (this.size == 1) {
+    return [[]];
+  }
+
   var cells = [];
 
   for (var x = 0; x < this.size; x++) {
@@ -88,6 +92,10 @@ Grid.prototype.cellContent = function (cell) {
 
 // Inserts a tile at its position
 Grid.prototype.insertTile = function (tile) {
+  if (!tile || !this.cells || tile.x == undefined || tile.y == undefined || !this.cells[tile.x]) {
+    !tile || !this.cells || tile.x == undefined || tile.y == undefined || !this.cells[tile.x]
+    debugger;
+  }
   this.cells[tile.x][tile.y] = tile;
 };
 
