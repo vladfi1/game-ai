@@ -1,8 +1,5 @@
 module Main where
 
-import Control.Monad.Loops
-
-
 import qualified UCT
 import UCT
 import qualified Game
