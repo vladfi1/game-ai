@@ -1,5 +1,6 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
 module Runner where
 
@@ -12,8 +13,11 @@ import qualified Data.ByteString as ByteString
 import System.Directory
 import System.Random
 
+import Data.Foldable (foldMap)
 import Data.Traversable
 import Data.Either
+
+import Data.Vector (Vector)
 
 import NewGame
 import TrainNN
@@ -46,10 +50,10 @@ readDir dirName = do
   return $ rights games
 
 --savedToData :: (Datum s, Bounded (Agent s), Enum (Agent s)) => Heuristic' s -> Saved s -> DataSet s
-savedToData :: (Convertible s Datum, Bounded (Agent s), Enum (Agent s)) =>
-  Heuristic' s -> Saved s -> DataSet s
+savedToData :: forall s v. (Convertible s Datum, Bounded (Agent s), Enum (Agent s), Convertible v Datum) =>
+  (s -> Agent s -> v) -> Saved s -> DataSet s
 savedToData score (game, final) = (final, value) : [(s, value) | (s, _) <- game]
-  where value = toVector (score final)
+  where value = foldMap convert ((toVector $ score final) :: Vector v)
 
 
 loadData dirName score = do

@@ -38,10 +38,10 @@ testRunner = do
   print game
 
 modelConfig = ModelConfig
-  { activation = Sigmoid
+  { activation = HyperbolicTangent
   , costModel = MeanSquared
-  , layers = [16, 16, 16, 1]
-  , regularization = 1
+  , layers = [64, 16, 4]
+  , regularization = 0.1
   }
 
 trainConfig = TrainConfig
@@ -51,7 +51,7 @@ trainConfig = TrainConfig
   }
 
 train dir = do
-  dataset <- loadData dir scoreThrees
+  dataset <- loadData dir scoreThreesBits
   model <- initNN modelConfig
   print $ scoreNN model dataset
   let (trained, score) = trainNN trainConfig dataset model

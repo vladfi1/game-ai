@@ -7,7 +7,7 @@
 
 module Threes where
 
-import Prelude hiding (Left, Right, foldr)
+import Prelude hiding (Left, Right, foldr, maximum)
 
 --import qualified Data.Map
 import Data.Maybe (catMaybes)
@@ -27,12 +27,15 @@ import Data.Foldable
 import qualified Control.Monad.Random as Random
 import Control.Monad.State hiding (state)
 
-import Utils (range, enumerate, allValues, modifyList)
+import Utils (range, enumerate, allValues, modifyList, getBits)
 import Discrete
 --import Instances
 import NewGame
 import OnePlayer
 import Convertible
+
+import Data.Word
+import Data.Bits
 
 import Foreign.Storable
 
@@ -80,7 +83,7 @@ type instance Agent ThreesState = OnePlayer
 type instance Action ThreesState = Direction
 
 instance (Storable a, Num a) => Convertible ThreesState (HVector.Vector a) where
-  convert = convert . Matrix.toList . grid
+  convert = convert . (>>= tileToBits) . Matrix.toList . grid
 
 width = 4
 height = 4
@@ -183,7 +186,7 @@ threesLoc ThreesLoc {direction, rows, open, nextTile, rng} = do
   return $ ThreesNum {grid, rng}
 
 threesNum ThreesNum {grid, rng} = do
-  let maxTile = foldr max 6 grid
+  let maxTile = maximum grid
   (tile, rng') <- runStateT (pickTile maxTile) rng
   return $ ThreesDir {
     grid = grid,
@@ -226,6 +229,17 @@ scoreGrid = getSum . (foldMap $ Sum . scoreTile)
 
 scoreThrees :: (Num a) => ThreesState -> OnePlayer -> a
 scoreThrees = const . fromIntegral . scoreGrid . grid
+
+classifyTile :: Tile -> Word8
+classifyTile x
+  | x <= 3    = fromIntegral x
+  | otherwise = 1 + classifyTile (shiftR x 1)
+
+tileToBits :: Tile -> [Bool]
+tileToBits = (take 4) . getBits . classifyTile
+
+scoreThreesBits :: ThreesState -> OnePlayer -> [Bool]
+scoreThreesBits = const . tileToBits . maximum . grid
 
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)

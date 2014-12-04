@@ -28,5 +28,12 @@ instance (Integral a, Num b) => Convertible a b where
 instance (Foldable f, Convertible a b, Storable b) => Convertible (f a) (Vector b) where
   convert = Vector.fromList . convert . toList
 
+instance (Num a) => Convertible Bool a where
+  convert False = 0
+  convert True = 1
+
+instance (Storable a) => Convertible a (Vector a) where
+  convert a = Vector.fromList [a]
+
 class (Convertible a b, Convertible b a) => Isomorphic a b
 

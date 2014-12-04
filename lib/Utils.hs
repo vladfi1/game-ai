@@ -18,6 +18,8 @@ import Control.Monad ((>=>))
 
 import qualified Numeric
 
+import Data.Bits
+
 decimals n f = Numeric.showFFloat (Just n) f ""
 
 inRange :: Ord a => (a, a) -> a -> Bool
@@ -72,4 +74,7 @@ invert packed =
   let unpacked = concat [[(a, b) | b <- bs] | (a, bs) <- packed]
       bToAs = foldl (\m (a, b) -> Map.insert b (a : Map.findWithDefault [] b m) m) Map.empty unpacked
     in Map.assocs bToAs
+
+getBits :: (Bits a) => a -> [Bool]
+getBits a = [testBit a i | i <- range $ bitSize a]
 
