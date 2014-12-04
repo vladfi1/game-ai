@@ -9,3 +9,4 @@ Test
 .cabal-sandbox/
 dist/
 cabal.sandbox.config
+cabal.config
