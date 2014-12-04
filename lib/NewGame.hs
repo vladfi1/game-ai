@@ -75,15 +75,17 @@ lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuri
 
 playOutM :: (Ord (Action s), Fractional w, MonadDiscrete w m) => Player s m -> GameState s -> Producer (GameState s, Action s) m (GameState s)
 
-playOutM play state @ NatureState {nature} = (lift nature) >>= (playOutM play)
+playOutM player state @ NatureState {nature} = (lift nature) >>= (playOutM player)
 
-playOutM play state @ PlayerState {actions}
+playOutM player state @ PlayerState {actions}
   | terminal state = return state
   | otherwise = do
-      act <- lift $ play state
+      act <- lift $ player state
       yield (state, act)
       let next = (Map.fromList actions) Map.! act
-      playOutM play next
+      playOutM player next
+
+--playOutM player initial = P.fold' (flip (:)) [] id (playOutM player initial)
 
 {-
 playOutEvalM :: (Monad m) => (GameState s -> m (GameState s)) -> GameState s -> m (a -> Double)

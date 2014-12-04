@@ -3,6 +3,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 
 module Threes where
 
@@ -11,8 +12,11 @@ import Prelude hiding (Left, Right, foldr)
 --import qualified Data.Map
 import Data.Maybe (catMaybes)
 
-import Data.Vector (Vector, (!), (//), indexed)
-import qualified Data.Vector as Vector
+import Data.Vector.Generic ((!), (//), indexed)
+import qualified Data.Vector.Generic as Vector
+
+import Data.Vector (Vector)
+import qualified Data.Packed.Vector as HVector
 
 import Data.Matrix hiding ((!))
 import qualified Data.Matrix as Matrix
@@ -28,6 +32,9 @@ import Discrete
 --import Instances
 import NewGame
 import OnePlayer
+import Convertible
+
+import Foreign.Storable
 
 import GHC.Generics
 import Data.Serialize (Serialize)
@@ -41,6 +48,39 @@ type Grid = Matrix Tile
 instance Serialize Grid where
   put = Serialize.put . toLists
   get = fmap fromLists Serialize.get
+
+data Direction = Up | Down | Left | Right
+  deriving (Eq, Ord, Enum, Bounded, Show, Read, Generic)
+
+instance Serialize Direction
+
+data ThreesState =
+  ThreesDir {
+    grid :: Grid,
+    nextTile :: Tile,
+    rng :: RNG
+  } |
+  ThreesLoc {
+    grid :: Grid,
+    direction :: Direction,
+    rows :: [Row],
+    open :: [Int],
+    nextTile :: Tile,
+    rng :: RNG
+  } |
+  ThreesNum {
+    grid :: Grid,
+    rng :: RNG
+  }
+  deriving (Generic)
+
+instance Serialize ThreesState
+
+type instance Agent ThreesState = OnePlayer
+type instance Action ThreesState = Direction
+
+instance (Storable a, Num a) => Convertible ThreesState (HVector.Vector a) where
+  convert = convert . Matrix.toList . grid
 
 width = 4
 height = 4
@@ -69,11 +109,6 @@ getRows matrix = [getRow i matrix | i <- [1 .. nrows matrix]]
 fromRows :: [Vector a] -> Matrix a
 fromRows = Matrix.fromLists . (map Vector.toList)
 --fromRows rows = foldr1 (<->) (map rowVector rows)
-
-data Direction = Up | Down | Left | Right
-  deriving (Eq, Ord, Enum, Bounded, Show, Read, Generic)
-
-instance Serialize Direction
 
 transposes Down = True
 transposes Up = True
@@ -127,31 +162,6 @@ pickTile maxTile = do
   oneOrTwo <- lift $ bernoulli 0.2
   if oneOrTwo then pick1or2
     else lift $ sample [(3, 0.75), (6, 0.25)]
-
-data ThreesState =
-  ThreesDir {
-    grid :: Grid,
-    nextTile :: Tile,
-    rng :: RNG
-  } |
-  ThreesLoc {
-    grid :: Grid,
-    direction :: Direction,
-    rows :: [Row],
-    open :: [Int],
-    nextTile :: Tile,
-    rng :: RNG
-  } |
-  ThreesNum {
-    grid :: Grid,
-    rng :: RNG
-  }
-  deriving (Generic)
-
-instance Serialize ThreesState
-
-type instance Agent ThreesState = OnePlayer
-type instance Action ThreesState = Direction
 
 threesDir :: ThreesState -> Direction -> Maybe ThreesState
 threesDir ThreesDir {grid, nextTile, rng} dir =
@@ -213,6 +223,9 @@ scoreTile n = n
 
 scoreGrid :: Grid -> Int
 scoreGrid = getSum . (foldMap $ Sum . scoreTile)
+
+scoreThrees :: (Num a) => ThreesState -> OnePlayer -> a
+scoreThrees = const . fromIntegral . scoreGrid . grid
 
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)
