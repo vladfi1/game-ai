@@ -44,13 +44,19 @@ makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
 
   forkIO $ initGUI userInput gamestateChannel
   
-  let between a b c = a <= c && c <= b
-  let print gamestate = putMVar gamestateChannel gamestate
-  let getUserInput =  fmap keyToDirection $ iterateUntil (between 37 40) (takeMVar userInput)
-  
-  --guiHumanPlayer :: GameState ThreesState ->
+  let between a b c = (a <= c) && (c <= b)
+  let toBrowser gamestate = putMVar gamestateChannel gamestate
+  let validDirections gamestate = map fst (actions gamestate)
+
   return $ \gamestate -> do
-    print gamestate
+    
+    let validDirections = map (show . fst) (actions gamestate)
+    let isValidInput key = (between 37 40 key) && ((keyToDirection key) `elem` validDirections)
+
+    let getUserInput =  fmap keyToDirection $ iterateUntil (isValidInput) (takeMVar userInput)
+
+    -- putStrLn $ actions gamestate 
+    toBrowser gamestate
     line <- getUserInput
     putStrLn $ "Got Line " ++ show line
     let tile = read line :: Direction
@@ -59,8 +65,6 @@ makeGuiHumanPlayer threepennyToMainIO mainToThreePennyIO = do
 
 onkeydown :: MVar Int -> Handler Int
 onkeydown userInput key = do
-      putStrLn "GOT KEY DOWN"  
-      putStrLn $ show key 
       tryPutMVar userInput key
       return ()
 
@@ -99,7 +103,6 @@ setup userInput newStateChan window = do
         gamestate <- takeMVar newStateChan
         putStrLn "got new state" 
         triggerWriteBoardEvent gamestate
-
     return ()
 
 trampolineCode = unlines ["var xhr= new XMLHttpRequest()",
