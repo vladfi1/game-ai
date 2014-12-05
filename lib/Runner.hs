@@ -31,7 +31,8 @@ type Saved s = ([(s, Action s)], s)
 type DataSet f v = [(f, v)]
 
 recordGame dirName initial player = do
-  (game, final) <- P.fold' (flip (:)) [] id (playOutM player initial)
+  initialSample <- initial
+  (game, final) <- playOutM' player initialSample
   
   let game' = reverse [(state s, act) | (s, act) <- game]
   
@@ -40,6 +41,8 @@ recordGame dirName initial player = do
   hash <- randomIO :: IO Int
   let fileName = dirName ++ (show hash)
   ByteString.writeFile fileName $ encode (game', state final)
+  
+  return $ state final
 
 readGame fileName = do
   --putStrLn fileName
@@ -49,7 +52,7 @@ readGame fileName = do
 --readGames :: String -> IO (Saved s)
 readDir dirName = do
   files <- getDirectoryContents dirName
-  let gameFiles = map (dirName ++) . (filter $ (flip notElem) [".", ".."]) $ files
+  let gameFiles = map ((dirName ++ "/") ++) . (filter $ (flip notElem) [".", ".."]) $ files
   games <- forM gameFiles readGame
   return $ rights games
 
@@ -62,7 +65,7 @@ data Trainer s f v t = Trainer
   , projectIn :: s -> f
   , projectOut :: s -> v
   , train :: DataSet f v -> IO t
-  , apply :: t -> Heuristic' s
+  , apply :: t -> f -> (Agent s) -> Double
   , name :: String
   }
 
@@ -72,16 +75,18 @@ loadData dirName Trainer {symmetries, projectIn, projectOut} = do
   let dataset =  games >>= (savedToData symmetries)
   return $ map (\(input, output) -> (projectIn input, projectOut output)) dataset
 
-iterate trainData trainer @ Trainer {train, apply, name} depth initial samples = do
+--trainAndRun :: String -> Trainer
+trainAndRun trainData trainer @ Trainer {projectIn, train, apply, name} depth initial samples = do
   dataset <- loadData trainData trainer
   trained <- train dataset
   
-  let heuristic = toHeuristic $ apply trained
-  let player = lookAheadPlayDepth depth heuristic
+  let heuristic = (apply trained) . projectIn
+  let player = lookAheadPlayDepth depth (toHeuristic heuristic)
   
   let newName = trainData ++ "-" ++ name ++ (show depth)
   
-  let record = recordGame newName initial player
+  let record = recordGame (newName ++ "/") initial player
   
   replicateM samples $ record
+  
 

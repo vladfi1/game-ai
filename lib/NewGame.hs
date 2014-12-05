@@ -74,6 +74,11 @@ lookAheadPlay heuristic PlayerState {agent, actions} =
 lookAheadPlayDepth :: (Monad m) => Int -> Heuristic s -> Player s m
 lookAheadPlayDepth n heuristic = lookAheadPlay (lookAheadEvalDepth (n - 1) heuristic)
 
+lookAheadPlay' heuristic PlayerState {agent, actions} =
+  return . snd $ maximumByKey (\(_, state) -> heuristic state agent) actions
+
+lookAheadPlayDepth' n heuristic = lookAheadPlay' (lookAheadEvalDepth (n - 1) heuristic)
+
 --playOut :: (GameState s -> GameState s) -> GameState s -> [GameState s]
 --playOut play state@Terminal {} = [state]
 --playOut play state = state : playOut play (play state)
@@ -96,7 +101,12 @@ playOutM player state @ PlayerState {actions}
       let next = (Map.fromList actions) Map.! act
       playOutM player next
 
---playOutM player initial = P.fold' (flip (:)) [] id (playOutM player initial)
+
+playOutM' player initial = P.fold' (flip (:)) [] id (playOutM player initial)
+
+nextPlayer :: (Fractional w, MonadDiscrete w m) => GameState s -> m (GameState s)
+nextPlayer NatureState {nature} = nature >>= nextPlayer
+nextPlayer player = return player
 
 {-
 playOutEvalM :: (Monad m) => (GameState s -> m (GameState s)) -> GameState s -> m (a -> Double)

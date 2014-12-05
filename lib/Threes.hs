@@ -26,6 +26,9 @@ import qualified Data.Matrix as Matrix
 import Data.Monoid
 import Data.Foldable
 
+import Pipes ((>->))
+import qualified Pipes.Prelude as P
+
 import qualified Control.Monad.Random as Random
 import Control.Monad.State hiding (state)
 
@@ -34,7 +37,7 @@ import Discrete
 --import Instances
 import NewGame
 import OnePlayer
-import Convertible
+--import Convertible
 
 import Data.Word
 import Data.Bits
@@ -230,6 +233,17 @@ instance Show ThreesState where
 newGrid = Matrix.fromLists [[3, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 newGame = threesToGame $ ThreesNum {grid = newGrid, rng = newRNG}
 
+allTiles = map toTile [0..15]
+
+randomTile = uniform allTiles
+
+randomGame = do
+  n <- uniform [10, 20, 30]
+  (game, _) <- playOutM' randomPlayer newGame
+  if length game <= n
+    then randomGame
+    else return . fst $ game !! n
+
 -- Scoring/Heuristic Functions
 
 scoreTile :: Tile -> Int
@@ -258,37 +272,47 @@ toTile x
   | x <= 3    = x
   | otherwise = 2 * toTile (x - 1)
 
-tileSizeUnary = 16
-tileSizeBinary = 4
-
 -- binary representations
+tileSizeBinary = 4
+gridScoreBinary = 12
+
+fromBit | True = 1
+        | False = 0
+
+toBinary :: Int -> Int -> [Bool]
+toBinary width = BV.toBits . (BV.bitVec width)
+
+fromBinary :: [Bool] -> Int
+fromBinary = fromIntegral . BV.uint . BV.fromBits
 
 tileToBits :: Tile -> [Bool]
-tileToBits = BV.toBits . (BV.bitVec 4) . classifyTile
+tileToBits = BV.toBits . (BV.bitVec tileSizeBinary) . classifyTile
 
 threesToBinary :: ThreesState -> [Bool]
 threesToBinary = (>>= tileToBits) . Matrix.toList . grid
 
 scoreThreesBinary :: ThreesState -> [Bool]
-scoreThreesBinary = tileToBits . maximum . grid
+scoreThreesBinary = (toBinary gridScoreBinary) . scoreGrid . grid
 
 -- unary representations
+tileSizeUnary = 16
+gridScoreUnary = 20
 
-unary :: Int -> Int -> [Bool]
-unary width n = (replicate n True) ++ (replicate (width - n) False)
+toUnary :: Int -> Int -> [Bool]
+toUnary width n = (replicate n True) ++ (replicate (width - n) False)
 
 fromUnary :: [Bool] -> Int
 fromUnary (False:_) = 0
 fromUnary (True:bs) = 1 + fromUnary bs
 
 tileToUnary :: Tile -> [Bool]
-tileToUnary = (unary tileSizeUnary) . classifyTile
+tileToUnary = (toUnary tileSizeUnary) . classifyTile
 
 threesToUnary :: ThreesState -> [Bool]
 threesToUnary = (>>= tileToUnary) . Matrix.toList . grid
 
 scoreThreesUnary :: ThreesState -> [Bool]
-scoreThreesUnary = tileToUnary . maximum . grid
+scoreThreesUnary = (toUnary gridScoreUnary) . (`quot` 27)  . scoreGrid . grid
 
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)

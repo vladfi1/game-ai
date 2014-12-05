@@ -6,7 +6,7 @@
 module TrainNN where
 
 import Debug.Trace
-
+import Data.IORef
 
 import AI.Model
 import AI.Training
@@ -61,7 +61,42 @@ scoreNN :: (Convertible f Datum, Convertible v Datum) =>
   GenericModel -> DataSet f v -> Double
 scoreNN GenericModel {cost, net} = uncurry (getCostFunction cost $ net) . prepare
 
-toHeuristic :: (Bounded (Agent s), Enum (Agent s)) =>
-  GenericModel -> (s -> Datum) -> Heuristic' s
-toHeuristic model toDatum = fromVector . (getOutput model) . toDatum
+data TDConfig s = TDConfig
+  { inputDatum :: s -> Datum
+  , outputDatum :: s -> Datum
+  , interpret :: Datum -> Agent s -> Double
+  , depth :: Int
+  , callback :: s -> IO ()
+  }
+
+getHeuristic TDConfig {inputDatum, interpret} model PlayerState {state} =
+  interpret $ getOutput model $ inputDatum state
+
+tdLearn :: TDConfig s -> (IORef GenericModel) -> (GameState s) -> IO ()
+
+tdLearn config modelRef = go where
+  go gameState =
+    let s1 = state gameState
+        input = inputDatum config s1 in
+    if terminal gameState
+      then do
+            let output = outputDatum config s1
+            reinforce input output
+            callback config s1
+      else do
+            model <- readIORef modelRef
+            let heuristic = getHeuristic config model
+            next <- lookAheadPlayDepth' (depth config) heuristic gameState
+            next' <- nextPlayer next
+            let output = getOutput model $ inputDatum config (state next')
+            reinforce input output
+            go next'
+  
+  reinforce input output = modifyIORef modelRef train
+    where train model = trainModel model GradientDescent 1.0 1 inMat outMat
+          inMat = asRow input
+          outMat = asRow output
+
+
+
 

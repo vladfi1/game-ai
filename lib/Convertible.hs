@@ -17,9 +17,6 @@ import qualified Data.BitVector as BV
 class Convertible a b where
   convert :: a -> b
 
-instance Convertible a a where
-  convert = id
-
 instance (Monad m) => Convertible a (m a) where
   convert = return
 
@@ -38,6 +35,9 @@ instance (Num a) => Convertible Bool a where
 
 instance (Storable a) => Convertible a (Vector a) where
   convert a = Vector.fromList [a]
+
+instance (Storable a) => Convertible (Vector a) [a] where
+  convert = Vector.toList
 
 --instance (Convertible Bool b, Storable b) => Convertible BV (Vector b) where
 --  convert = convert . BV.toBits
