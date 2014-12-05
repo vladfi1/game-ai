@@ -38,16 +38,24 @@ testRunner = do
   --forM game print
   print game
 
-unaryOutput = (scoreThreesUnary, numTileClasses)
-binaryOutput = (scoreThreesBits, 4)
+unaryInput = (threesToUnary, tileSizeUnary)
+binaryInput = (threesToBinary, tileSizeBinary)
+
+--(featureFunction, tileSizeInput) = unaryInput
+(featureFunction, tileSizeInput) = binaryInput
+
+unaryOutput = (scoreThreesUnary, tileSizeUnary)
+binaryOutput = (scoreThreesBinary, tileSizeBinary)
 
 (scoreFunction, outputLayer) = unaryOutput
+--(scoreFunction, outputLayer) = binaryOutput
 
+project (f, v) = (featureFunction f, scoreFunction v)
 
 modelConfig = ModelConfig
   { activation = Sigmoid
   , costModel = Logistic
-  , layers = [64, 32, 16, outputLayer]
+  , layers = [gridSize * tileSizeInput, 32, 8, outputLayer]
   , regularization = 0.01
   }
 
@@ -58,11 +66,12 @@ trainConfig = TrainConfig
   }
 
 train dir = do
-  dataset <- loadData dir scoreFunction symmetrize
+  dataset <- loadData dir symmetrize
+  let projected = map project dataset
   
   putStrLn "Subsampling data"
-  training <- choose 1000 dataset
-  validation <- choose 1000 dataset
+  training <- choose 1000 projected
+  validation <- choose 1000 projected
   
   putStrLn "Initializing model"
   initial <- initNN modelConfig

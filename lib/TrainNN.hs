@@ -18,20 +18,20 @@ import Data.Packed.Matrix
 import Control.Monad.Random
 import Control.Applicative ((<$>))
 
---import Convertible
+import Convertible
 import NewGame
 import Utils (fromVector)
 
 type Datum = Vector Double
 type Data = Matrix Double
 
-type DataSet = [(Datum, Datum)]
+type DataSet f v = [(f, v)]
 
-prepare :: DataSet -> (Data, Data)
+prepare :: (Convertible f Datum, Convertible v Datum) => DataSet f v -> (Data, Data)
 prepare dataset = (inMat, outMat)
   where (input, output) = unzip dataset
-        inMat = fromRows input
-        outMat = fromRows output
+        inMat = fromRows $ (map convert) input
+        outMat = fromRows $ (map convert) output
 
 data ModelConfig = ModelConfig
   { activation      :: Activation
@@ -52,13 +52,14 @@ initNN ModelConfig {activation, costModel, layers, regularization} =
 
 dims mat = (rows mat, cols mat)
 
-trainNN :: TrainConfig -> DataSet -> GenericModel -> GenericModel
-trainNN TrainConfig {algorithm, precision, iterations} dataset model =
-  let (inMat, outMat) = prepare dataset
-      trained = trainModel model algorithm precision iterations inMat outMat
-  in trained
+trainNN :: (Convertible f Datum, Convertible v Datum) =>
+  TrainConfig -> DataSet f v -> GenericModel -> GenericModel
+trainNN TrainConfig {algorithm, precision, iterations} dataset model = trained
+  where (inMat, outMat) = prepare dataset
+        trained = trainModel model algorithm precision iterations inMat outMat
 
-scoreNN :: GenericModel -> DataSet -> Double
+scoreNN :: (Convertible f Datum, Convertible v Datum) =>
+  GenericModel -> DataSet f v -> Double
 scoreNN GenericModel {cost, net} = uncurry (getCostFunction cost $ net) . prepare
 
 toHeuristic :: (Bounded (Agent s), Enum (Agent s)) =>

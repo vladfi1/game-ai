@@ -49,15 +49,12 @@ readDir dirName = do
   games <- forM gameFiles readGame
   return $ rights games
 
---savedToData :: (Datum s, Bounded (Agent s), Enum (Agent s)) => Heuristic' s -> Saved s -> DataSet s
-savedToData :: forall s v. (Convertible s Datum, Bounded (Agent s), Enum (Agent s), Convertible v Datum) =>
-  (s -> Agent s -> v) -> (s -> [s]) -> Saved s -> DataSet
-savedToData score symmetries (game, final) = [(convert s, value) | s <- states]
-  where value = foldMap convert ((toVector $ score final) :: Vector v)
-        states = (final : (map fst game)) >>= symmetries
+savedToData :: (s -> [s]) -> Saved s -> DataSet s s
+savedToData symmetries (game, final) = [(s, final) | s <- states]
+  where states = (final : (map fst game)) >>= symmetries
 
-loadData dirName score symmetries = do
+loadData dirName symmetries = do
   putStrLn $ "Loading data from " ++ dirName
   games <- readDir dirName
-  return $ games >>= (savedToData score symmetries)
+  return $ games >>= (savedToData symmetries)
 
