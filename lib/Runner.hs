@@ -20,11 +20,12 @@ import Data.Either
 import Data.Vector (Vector)
 
 import NewGame
-import TrainNN
 import Convertible
 import Utils (toVector)
 
-type Saved s = ([(s, Action s)], s)
+import Data.Packed.Matrix
+import Types
+
 
 recordGame dirName initial player = do
   (game, final) <- P.fold' (flip (:)) [] id (playOutM player initial)
