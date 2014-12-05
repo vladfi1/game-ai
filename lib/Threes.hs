@@ -254,6 +254,11 @@ classifyTile x
   | x <= 3    = fromIntegral x
   | otherwise = 1 + classifyTile (shiftR x 1)
 
+toTile :: Int -> Tile
+toTile x
+  | x <= 3    = x
+  | otherwise = 2 * toTile (x - 1)
+
 numTileClasses :: Int
 numTileClasses = 16
 
@@ -262,6 +267,10 @@ tileToBits = BV.toBits . (BV.bitVec 4) . classifyTile
 
 unary :: Int -> Int -> [Bool]
 unary width n = (replicate n True) ++ (replicate (width - n) False)
+
+fromUnary :: [Bool] -> Int
+fromUnary (False:_) = 0
+fromUnary (True:bs) = 1 + fromUnary bs
 
 tileToUnary :: Tile -> [Bool]
 tileToUnary = (unary numTileClasses) . classifyTile

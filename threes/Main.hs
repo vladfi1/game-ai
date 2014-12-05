@@ -38,29 +38,47 @@ testRunner = do
   --forM game print
   print game
 
+unaryOutput = (scoreThreesUnary, numTileClasses)
+binaryOutput = (scoreThreesBits, 4)
+
+(scoreFunction, outputLayer) = unaryOutput
+
+
 modelConfig = ModelConfig
-  { activation = HyperbolicTangent
-  , costModel = MeanSquared
-  , layers = [64, 16, numTileClasses]
-  , regularization = 0.1
+  { activation = Sigmoid
+  , costModel = Logistic
+  , layers = [64, 32, 16, outputLayer]
+  , regularization = 0.01
   }
 
 trainConfig = TrainConfig
   { algorithm = LBFGS
-  , precision = 0.0001
+  , precision = 0.001
   , iterations = 100
   }
 
 train dir = do
-  dataset <- loadData dir scoreThreesUnary symmetrize
-  subsampled <- choose 100 dataset
-  model <- initNN modelConfig
-  print $ scoreNN model subsampled
-  let (trained, score) = trainNN trainConfig subsampled model
-  print score
+  dataset <- loadData dir scoreFunction symmetrize
+  
+  putStrLn "Subsampling data"
+  training <- choose 1000 dataset
+  validation <- choose 1000 dataset
+  
+  putStrLn "Initializing model"
+  initial <- initNN modelConfig
+  print $ scoreNN initial training
+  print $ scoreNN initial validation
+  
+  putStrLn "Training Model"
+  let trained = trainNN trainConfig training initial
+  print $ scoreNN trained training
+  print $ scoreNN trained validation
 
 main = do
   setStdGen $ mkStdGen 0
-  --testRunner
+  let playGame = recordGame saveDir newGame cpuPlayer
+  --putStrLn "Playing games"
+  --replicateM 500 playGame
+  putStrLn "Training"
   train saveDir
 

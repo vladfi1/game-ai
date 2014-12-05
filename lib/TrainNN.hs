@@ -52,12 +52,11 @@ initNN ModelConfig {activation, costModel, layers, regularization} =
 
 dims mat = (rows mat, cols mat)
 
-trainNN :: TrainConfig -> DataSet -> GenericModel -> (GenericModel, Double)
+trainNN :: TrainConfig -> DataSet -> GenericModel -> GenericModel
 trainNN TrainConfig {algorithm, precision, iterations} dataset model =
   let (inMat, outMat) = prepare dataset
       trained = trainModel model algorithm precision iterations inMat outMat
-      score = scoreNN trained dataset
-  in traceShow (dims inMat, dims outMat) (trained, score)
+  in trained
 
 scoreNN :: GenericModel -> DataSet -> Double
 scoreNN GenericModel {cost, net} = uncurry (getCostFunction cost $ net) . prepare
