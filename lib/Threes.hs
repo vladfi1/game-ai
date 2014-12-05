@@ -85,13 +85,9 @@ instance Serialize ThreesState
 type instance Agent ThreesState = OnePlayer
 type instance Action ThreesState = Direction
 
-instance (Storable a, Num a) => Convertible ThreesState (HVector.Vector a) where
-  convert threes = x--traceShow y x
-    where x = convert . (>>= tileToBits) . Matrix.toList . grid $ threes
-          --y = (>>= tileToBits) . Matrix.toList . grid $ threes
-
 width = 4
 height = 4
+gridSize = width * height
 
 combines :: Tile -> Tile -> Bool
 combines 0 x = x /= 0
@@ -234,6 +230,8 @@ instance Show ThreesState where
 newGrid = Matrix.fromLists [[3, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
 newGame = threesToGame $ ThreesNum {grid = newGrid, rng = newRNG}
 
+-- Scoring/Heuristic Functions
+
 scoreTile :: Tile -> Int
 scoreTile n = n
 
@@ -243,11 +241,12 @@ scoreGrid = getSum . (foldMap $ Sum . scoreTile)
 scoreThrees :: (Num a) => ThreesState -> OnePlayer -> a
 scoreThrees = const . fromIntegral . scoreGrid . grid
 
-
 basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
 basicHeuristic game You =
   fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
   where g = grid $ state game
+
+-- compressed tile representation
 
 classifyTile :: Tile -> Int
 classifyTile x
@@ -259,11 +258,21 @@ toTile x
   | x <= 3    = x
   | otherwise = 2 * toTile (x - 1)
 
-numTileClasses :: Int
-numTileClasses = 16
+tileSizeUnary = 16
+tileSizeBinary = 4
+
+-- binary representations
 
 tileToBits :: Tile -> [Bool]
 tileToBits = BV.toBits . (BV.bitVec 4) . classifyTile
+
+threesToBinary :: ThreesState -> [Bool]
+threesToBinary = (>>= tileToBits) . Matrix.toList . grid
+
+scoreThreesBinary :: ThreesState -> [Bool]
+scoreThreesBinary = tileToBits . maximum . grid
+
+-- unary representations
 
 unary :: Int -> Int -> [Bool]
 unary width n = (replicate n True) ++ (replicate (width - n) False)
@@ -273,13 +282,13 @@ fromUnary (False:_) = 0
 fromUnary (True:bs) = 1 + fromUnary bs
 
 tileToUnary :: Tile -> [Bool]
-tileToUnary = (unary numTileClasses) . classifyTile
+tileToUnary = (unary tileSizeUnary) . classifyTile
 
-scoreThreesBits :: ThreesState -> OnePlayer -> [Bool]
-scoreThreesBits = const . tileToBits . maximum . grid
+threesToUnary :: ThreesState -> [Bool]
+threesToUnary = (>>= tileToUnary) . Matrix.toList . grid
 
-scoreThreesUnary :: ThreesState -> OnePlayer -> [Bool]
-scoreThreesUnary = const . tileToUnary . maximum . grid
+scoreThreesUnary :: ThreesState -> [Bool]
+scoreThreesUnary = tileToUnary . maximum . grid
 
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)

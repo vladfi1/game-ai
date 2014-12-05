@@ -12,7 +12,6 @@ import Discrete (choose)
 import Threes
 import NewGame
 import Runner
-import Types
 
 humanPlayer game @ PlayerState {actions} = do
   print game
@@ -34,11 +33,19 @@ testRunner = do
   --forM game print
   print game
 
-unaryOutput = (scoreThreesUnary, numTileClasses)
-binaryOutput = (scoreThreesBits, 4)
+unaryInput = (threesToUnary, tileSizeUnary)
+binaryInput = (threesToBinary, tileSizeBinary)
+
+--(featureFunction, tileSizeInput) = unaryInput
+(featureFunction, tileSizeInput) = binaryInput
+
+unaryOutput = (scoreThreesUnary, tileSizeUnary)
+binaryOutput = (scoreThreesBinary, tileSizeBinary)
 
 (scoreFunction, outputLayer) = unaryOutput
+--(scoreFunction, outputLayer) = binaryOutput
 
+project (f, v) = (featureFunction f, scoreFunction v)
 
 main = do
   setStdGen $ mkStdGen 0
