@@ -1,6 +1,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE NamedFieldPuns #-}
 
 module Runner where
 
@@ -14,8 +15,9 @@ import System.Directory
 import System.Random
 
 import Data.Foldable (foldMap)
-import Data.Traversable
+--import Data.Traversable
 import Data.Either
+import Control.Monad
 
 import Data.Vector (Vector)
 
@@ -55,8 +57,31 @@ savedToData :: (s -> [s]) -> Saved s -> DataSet s s
 savedToData symmetries (game, final) = [(s, final) | s <- states]
   where states = (final : (map fst game)) >>= symmetries
 
-loadData dirName symmetries = do
+data Trainer s f v t = Trainer
+  { symmetries :: s -> [s]
+  , projectIn :: s -> f
+  , projectOut :: s -> v
+  , train :: DataSet f v -> IO t
+  , apply :: t -> Heuristic' s
+  , name :: String
+  }
+
+loadData dirName Trainer {symmetries, projectIn, projectOut} = do
   putStrLn $ "Loading data from " ++ dirName
   games <- readDir dirName
-  return $ games >>= (savedToData symmetries)
+  let dataset =  games >>= (savedToData symmetries)
+  return $ map (\(input, output) -> (projectIn input, projectOut output)) dataset
+
+iterate trainData trainer @ Trainer {train, apply, name} depth initial samples = do
+  dataset <- loadData trainData trainer
+  trained <- train dataset
+  
+  let heuristic = toHeuristic $ apply trained
+  let player = lookAheadPlayDepth depth heuristic
+  
+  let newName = trainData ++ "-" ++ name ++ (show depth)
+  
+  let record = recordGame newName initial player
+  
+  replicateM samples $ record
 
