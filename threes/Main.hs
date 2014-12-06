@@ -7,13 +7,16 @@ module Main where
 import Data.IORef
 import Debug.Trace
 
+import Statistics.Sample
+
 import Data.Functor
 import Control.Monad
-import Control.Monad.Random
+import System.Random
 import qualified Data.Map as Map
 
 import AI.HNN.FF.Network
-import Data.Packed.Vector
+import qualified Data.Packed.Vector as Packed
+import qualified Data.Vector.Generic as Vector
 
 import Discrete (choose)
 import Threes
@@ -29,7 +32,7 @@ humanPlayer game @ PlayerState {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-cpuPlayer = (lookAheadPlayDepth 7 emptyHeuristic)
+cpuPlayer n = (lookAheadPlayDepth n emptyHeuristic)
 
 saveDir = "saved/threes/"
 
@@ -56,8 +59,8 @@ nnConfig = NNConfig
   , learningRate = 0.001
   , inputDatum = convert . featureFunction
   , outputDatum = convert . scoreFunction
-  , interpret = const . sum . toList
-  , depth = 3
+  , interpret = const . sum . Packed.toList
+  , depth = 1
   , callback = print . scoreGrid . grid 
   }
 
@@ -69,19 +72,35 @@ playGames = do
   --rand <- replicateM 100 $ recordGame "saved/threes/" (return newGame) randomPlayer
 -}
 
+scoreGameState = scoreGrid . grid . state
+
 runPlayer player = do
   (_, final) <- playOutM' player newGame
-  print $ scoreGrid $ grid $ state final
+  print $ scoreGameState final
+
+estimatePlayer player samples = do
+  games <- replicateM samples $ playOutM' player newGame
+  let scores = Packed.fromList $ map (fromIntegral . scoreGameState . snd) games
+  print $ map ($ scores) [mean, stdDev, Vector.minimum, Vector.maximum]
 
 main = do
   setStdGen $ mkStdGen 0
   modelRef <- initNN nnConfig >>= newIORef
   
   --let learn = (nextPlayer newGame) >>= (tdLearn nnConfig modelRef)
-  let learn = (nextPlayer newGame) >>= (batchLearn nnConfig modelRef 2)
-  --forever (learn >>= print . scoreGrid . grid)
+  let learn = (nextPlayer newGame) >>= (batchLearn nnConfig modelRef 5)
+  replicateM 1000 $ (learn >>= print . scoreGrid . grid)
   
-  forever $ runPlayer cpuPlayer
+  learned <- readIORef modelRef
+  let heuristic = getHeuristic nnConfig learned
+  
+  forM [1, 4, 7]
+    (\depth -> estimatePlayer (lookAheadPlayDepth depth heuristic) 100)
+  
+  --estimatePlayer randomPlayer 100
+  --forM [1,4,7] (\n -> estimatePlayer (cpuPlayer n) 100)
+    
+  --forever $ runPlayer cpuPlayer
   
   --recordGame saveDir randomGame cpuPlayer
   

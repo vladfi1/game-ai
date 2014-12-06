@@ -39,7 +39,7 @@ executable kjc
 executable threes
   main-is:             Main.hs
   hs-source-dirs:      threes
-  build-depends:       base, game-ai, containers >=0.5, MonadRandom >= 0.3, pipes >= 4.1, hmatrix, hnn
+  build-depends:       base, game-ai, containers >=0.5, random, pipes >= 4.1, hmatrix, hnn, statistics, vector
   ghc-options:         -fprof-auto -rtsopts -O2
   default-language:    Haskell2010
 

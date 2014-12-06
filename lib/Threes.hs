@@ -174,9 +174,9 @@ pick1or2 = do
 
 pickTile :: (Fractional w, MonadDiscrete w m) => Int -> StateT RNG m Tile
 pickTile maxTile = do
-  oneOrTwo <- lift $ bernoulli 0.2
+  oneOrTwo <- lift $ bernoulli 0.4
   if oneOrTwo then pick1or2
-    else lift $ sample [(3, 0.75), (6, 0.25)]
+    else lift $ uniform [3, 6]
 
 threesDir :: ThreesState -> Direction -> Maybe ThreesState
 threesDir ThreesDir {grid, nextTile, rng} dir =
@@ -314,6 +314,7 @@ gridScoreUnary = 32
 
 toUnary :: Int -> Int -> [Bool]
 toUnary width n = (replicate n True) ++ (replicate (width - n) False)
+--toUnary width n = (replicate n False) ++ (True : (replicate (width-n-1) False))
 
 fromUnary :: [Bool] -> Int
 fromUnary (False:_) = 0
