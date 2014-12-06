@@ -4,7 +4,7 @@
 {-# LANGUAGE DeriveGeneric, StandaloneDeriving #-}
 {-# LANGUAGE TypeSynonymInstances, FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
-{-# LANGUAGE OverlappingInstances #-}
+--{-# LANGUAGE OverlappingInstances #-}
 
 module Threes where
 
@@ -260,6 +260,16 @@ basicHeuristic game You =
   fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
   where g = grid $ state game
 
+countEmpty :: Grid -> Int
+countEmpty = getSum . (foldMap $ Sum . isZero)
+  where isZero 0 = 1
+        isZero _ = 0
+
+symmetrize :: ThreesState -> [ThreesState]
+symmetrize threes = do
+  newGrid <- allGrids (grid threes)
+  return $ threes {grid = newGrid}
+
 -- compressed tile representation
 
 classifyTile :: Tile -> Int
@@ -296,7 +306,7 @@ scoreThreesBinary = (toBinary gridScoreBinary) . scoreGrid . grid
 
 -- unary representations
 tileSizeUnary = 16
-gridScoreUnary = 20
+gridScoreUnary = 32
 
 toUnary :: Int -> Int -> [Bool]
 toUnary width n = (replicate n True) ++ (replicate (width - n) False)
@@ -314,13 +324,9 @@ threesToUnary = (>>= tileToUnary) . Matrix.toList . grid
 scoreThreesUnary :: ThreesState -> [Bool]
 scoreThreesUnary = (toUnary gridScoreUnary) . (`quot` 27)  . scoreGrid . grid
 
-countEmpty :: Grid -> Int
-countEmpty = getSum . (foldMap $ Sum . isZero)
-  where isZero 0 = 1
-        isZero _ = 0
 
-symmetrize :: ThreesState -> [ThreesState]
-symmetrize threes = do
-  newGrid <- allGrids (grid threes)
-  return $ threes {grid = newGrid}
+-- continuous representation
+scoreThreesContinuous :: ThreesState -> Double
+scoreThreesContinuous = affine . fromIntegral . scoreGrid . grid
+  where affine x = (x - 200) / 200
 
