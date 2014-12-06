@@ -255,15 +255,19 @@ scoreGrid = getSum . (foldMap $ Sum . scoreTile)
 scoreThrees :: (Num a) => ThreesState -> OnePlayer -> a
 scoreThrees = const . fromIntegral . scoreGrid . grid
 
-basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
-basicHeuristic game You =
-  fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
-  where g = grid $ state game
-
 countEmpty :: Grid -> Int
 countEmpty = getSum . (foldMap $ Sum . isZero)
   where isZero 0 = 1
         isZero _ = 0
+
+emptyHeuristic :: GameState ThreesState -> OnePlayer -> Double
+emptyHeuristic game You = fromIntegral $ countEmpty g
+  where g = grid $ state game
+
+basicHeuristic :: GameState ThreesState -> OnePlayer -> Double
+basicHeuristic game You =
+  fromIntegral $ (scoreGrid g) + 10 * (countEmpty g)
+  where g = grid $ state game
 
 symmetrize :: ThreesState -> [ThreesState]
 symmetrize threes = do

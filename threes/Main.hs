@@ -29,7 +29,7 @@ humanPlayer game @ PlayerState {actions} = do
   let tile = read line :: Direction
   return $ (Map.fromList actions) Map.! tile
 
-cpuPlayer = (lookAheadPlayDepth 3 basicHeuristic)
+cpuPlayer = (lookAheadPlayDepth 7 emptyHeuristic)
 
 saveDir = "saved/threes/"
 
@@ -50,10 +50,10 @@ continuousOutput = (scoreThreesContinuous, 1)
 nnConfig = NNConfig
   { inputs = gridSize * tileSizeInput
   , outputs = outputLayer
-  , activation = tanh
-  , activation' = tanh'
+  , activation = sigmoid
+  , activation' = sigmoid'
   , layers = [32]
-  , learningRate = 0.1
+  , learningRate = 0.001
   , inputDatum = convert . featureFunction
   , outputDatum = convert . scoreFunction
   , interpret = const . sum . toList
@@ -69,13 +69,19 @@ playGames = do
   --rand <- replicateM 100 $ recordGame "saved/threes/" (return newGame) randomPlayer
 -}
 
+runPlayer player = do
+  (_, final) <- playOutM' player newGame
+  print $ scoreGrid $ grid $ state final
+
 main = do
   setStdGen $ mkStdGen 0
   modelRef <- initNN nnConfig >>= newIORef
   
-  let learn = (nextPlayer newGame) >>= (tdLearn nnConfig modelRef)
+  --let learn = (nextPlayer newGame) >>= (tdLearn nnConfig modelRef)
+  let learn = (nextPlayer newGame) >>= (batchLearn nnConfig modelRef 2)
+  --forever (learn >>= print . scoreGrid . grid)
   
-  replicateM 10000 learn
+  forever $ runPlayer cpuPlayer
   
   --recordGame saveDir randomGame cpuPlayer
   
