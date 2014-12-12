@@ -12,7 +12,7 @@ import Statistics.Sample
 import Data.Functor
 import Control.Monad
 import System.Random
-import qualified Data.Map as Map
+--import qualified Data.Map as Map
 
 import AI.HNN.FF.Network
 import qualified Data.Packed.Vector as Packed
@@ -29,8 +29,9 @@ import Convertible
 humanPlayer game @ PlayerState {actions} = do
   print game
   line <- getLine
-  let tile = read line :: Direction
-  return $ (Map.fromList actions) Map.! tile
+  return $ read line
+  --let tile = read line :: Direction
+  --return $ (Map.fromList actions) Map.! tile
 
 cpuPlayer n = (lookAheadPlayDepth n emptyHeuristic)
 
@@ -87,6 +88,7 @@ main = do
   setStdGen $ mkStdGen 0
   modelRef <- initNN nnConfig >>= newIORef
   
+  {-
   --let learn = (nextPlayer newGame) >>= (tdLearn nnConfig modelRef)
   let learn = (nextPlayer newGame) >>= (batchLearn nnConfig modelRef 5)
   replicateM 1000 $ (learn >>= print . scoreGrid . grid)
@@ -96,9 +98,14 @@ main = do
   
   forM [1, 4, 7]
     (\depth -> estimatePlayer (lookAheadPlayDepth depth heuristic) 100)
+  -}
   
-  --estimatePlayer randomPlayer 100
-  --forM [1,4,7] (\n -> estimatePlayer (cpuPlayer n) 100)
+  --estimatePlayer (cpuPlayer 4) 10
+  
+  runPlayer humanPlayer
+  
+  --estimatePlayer randomPlayer 1000
+  --forM [1,4] (\n -> estimatePlayer (cpuPlayer n) 1000)
     
   --forever $ runPlayer cpuPlayer
   
