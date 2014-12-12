@@ -8,7 +8,7 @@
 
 module Threes where
 
-import Prelude hiding (Left, Right, foldl, maximum)
+import Prelude hiding (Left, Right, foldr, maximum)
 import Debug.Trace
 
 --import qualified Data.Map
@@ -150,11 +150,11 @@ allGrids grid = do
 pushGrid :: Direction -> Grid -> ([Row], [Int])
 pushGrid dir grid = (pushed, open)
   where rows = disassemble dir grid
-        push (is, rs) (i, row) =
+        push (i, row) (is, rs) =
           case pushRow row of
             Nothing -> (is, row : rs)
             Just r -> (i : is, r : rs)
-        (open, pushed) = foldl push ([], []) (enumerate rows)
+        (open, pushed) = foldr push ([], []) (enumerate rows)
 
 placeTile :: Tile -> Row -> Row
 placeTile tile = (// [(0, tile)])
