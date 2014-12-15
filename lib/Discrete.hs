@@ -6,7 +6,7 @@
 
 module Discrete where
 
-import NumericPrelude hiding (foldr1, mapM)
+import NumericPrelude hiding (foldl')
 import qualified Algebra.Ring as Ring
 import qualified Algebra.Module as Module
 import qualified Algebra.Field as Field
@@ -43,7 +43,7 @@ instance Functor (Weighted w) where
   fmap f (Weighted (a, w)) = Weighted (f a, w)
 
 instance (Ring.C w) => Monad' (Weighted w) where
-  return' a = Weighted (a, Ring.one)
+  return' a = Weighted (a, one)
   --{-# INLINABLE join' #-}
   join' (Weighted (Weighted (a, w0), w1)) = Weighted (a, w0 * w1)
 
@@ -76,7 +76,7 @@ toWeightedList = (map asPair) . getCompose
 
 --{-# INLINABLE expectation #-}
 expectation :: (Module.C w a) => Discrete w a -> a
-expectation = (foldr1 (+)) . fmap ((uncurry (<*)) . asPair) . getCompose
+expectation = (foldl' (+) zero) . fmap ((uncurry (<*)) . asPair) . getCompose
 
 --expectation' :: (Module.C w a) => Int -> Discrete w a -> a
 --expectation' n = expectation . fromList . (take n) . toWeightedList
