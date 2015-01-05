@@ -3,6 +3,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
+--{-# LANGUAGE OverlappingInstances #-}
 
 module Discrete where
 
@@ -28,6 +29,7 @@ import qualified Control.Monad.Random as Random
 import System.Random (RandomGen)
 import Control.Monad (liftM, ap)
 import Control.Applicative (Applicative, pure, (<*>))
+import Control.Monad.IO.Class
 
 import Data.Set (Set)
 import qualified Data.Set as Set
@@ -94,7 +96,7 @@ instance (Ring.C w) => Monad (Discrete w) where
 --instance (Show w, Show a) => Show (Discrete w a) where
 --  show = show . getCompose
 
-class (Field.C w, Monad m) => MonadDiscrete w m | m -> w where
+class (Field.C w, Applicative m, Monad m) => MonadDiscrete w m | m -> w where
   sample :: [(a, w)] -> m a
   uniform :: [a] -> m a
   uniform as = sample [(a, w) | a <- as]

@@ -7,18 +7,25 @@ module Main where
 import Data.IORef
 import Debug.Trace
 
+import Data.Dequeue
+import qualified Data.Dequeue as Dequeue
+
 import Statistics.Sample
 
 import Data.Functor
+import Data.Foldable
 import Control.Monad
 import System.Random
+import Control.Monad.State hiding (state)
 --import qualified Data.Map as Map
+
+import Prelude hiding (sum)
 
 import AI.HNN.FF.Network
 import qualified Data.Packed.Vector as Packed
 import qualified Data.Vector.Generic as Vector
 
-import Discrete (choose)
+import Discrete
 import Threes
 import OnePlayer
 import NewGame
@@ -57,12 +64,14 @@ nnConfig = NNConfig
   , activation = sigmoid
   , activation' = sigmoid'
   , layers = [32]
-  , learningRate = 0.001
+  , learningRate = 0.01
   , inputDatum = convert . featureFunction
   , outputDatum = convert . scoreFunction
   , interpret = const . sum . Packed.toList
   , depth = 1
-  , callback = print . scoreGrid . grid 
+  , batch = 1
+  , queue = 500
+--  , callback = print . scoreGrid . grid 
   }
 
 {-
@@ -75,34 +84,64 @@ playGames = do
 
 scoreGameState = scoreGrid . grid . state
 
-runPlayer player = do
+scorePlayer :: (Fractional w, MonadDiscrete w m) => Player ThreesState m -> m Int
+scorePlayer player = do
   (_, final) <- playOutM' player newGame
-  print $ scoreGameState final
+  return $ scoreGameState final
 
-estimatePlayer player samples = do
-  games <- replicateM samples $ playOutM' player newGame
-  let scores = Packed.fromList $ map (fromIntegral . scoreGameState . snd) games
-  print $ map ($ scores) [mean, stdDev, Vector.minimum, Vector.maximum]
+runPlayer = print . scorePlayer
+
+estimatePlayer :: (Fractional w, MonadDiscrete w m) => Int -> Player ThreesState m -> m [Double]
+estimatePlayer samples player = do
+  scores <- Packed.fromList <$> replicateM samples (fromIntegral <$> scorePlayer player)
+  return $ map ($ scores) [mean, stdDev, Vector.minimum, Vector.maximum]
+
+--type Learner m = m (Player s m)
+
+estimateLearner :: (Foldable q, Dequeue q, MonadIO m) => Int -> m (Player ThreesState IO) -> StateT (q Int) m ()
+estimateLearner size learner = do
+  player <- lift learner
+  score <- liftIO $ scorePlayer player
+  --liftIO $ print score
+  
+  queue <- get
+  let queue' = pushBack queue score
+  let queue'' = if Dequeue.length queue' > size
+                  then snd $ popFront queue'
+                  else queue'
+  put queue''
+  
+  let scores = Packed.fromList $ map fromIntegral $ toList queue''
+  liftIO $ print $ map ($ scores) [mean, stdDev, Vector.minimum, Vector.maximum]
+
+emptyQueue :: BankersDequeue a
+emptyQueue = empty
 
 main = do
   setStdGen $ mkStdGen 0
   modelRef <- initNN nnConfig >>= newIORef
   
-  {-
-  --let learn = (nextPlayer newGame) >>= (tdLearn nnConfig modelRef)
-  let learn = (nextPlayer newGame) >>= (batchLearn nnConfig modelRef 5)
-  replicateM 1000 $ (learn >>= print . scoreGrid . grid)
+  let batchLearner = batchLearn nnConfig modelRef newGame
+  let queueLearner = queueLearn nnConfig modelRef newGame
   
+  let runBatch = runStateT (forever $ estimateLearner 1000 batchLearner) emptyQueue
+  let runQueue = runStateT (runStateT (forever $ estimateLearner 1000 queueLearner) emptyQueue) emptyQueue
+  --runStateT (for_ [1..10000] $ \i -> learn >>= (estimatePlayer 1) >>= (liftIO . print)) emptyQueue
+  
+  runBatch
+  --runQueue
+
+  {-
   learned <- readIORef modelRef
   let heuristic = getHeuristic nnConfig learned
   
   forM [1, 4, 7]
     (\depth -> estimatePlayer (lookAheadPlayDepth depth heuristic) 100)
   -}
-  
+	  
   --estimatePlayer (cpuPlayer 4) 10
   
-  runPlayer humanPlayer
+  --runPlayer humanPlayer
   
   --estimatePlayer randomPlayer 1000
   --forM [1,4] (\n -> estimatePlayer (cpuPlayer n) 1000)

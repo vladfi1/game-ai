@@ -1,7 +1,8 @@
-{-# LANGUAGE RankNTypes #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE OverlappingInstances #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE NoMonomorphismRestriction #-}
 
 module TrainNN where
 
@@ -13,14 +14,22 @@ import AI.HNN.FF.Network
 import Data.Packed.Vector
 import Data.Packed.Matrix
 
+import Data.Dequeue hiding (length)
+import qualified Data.Dequeue as Dequeue
+
+import Data.Foldable hiding (concat)
+import qualified Data.Foldable as Foldable
 import Control.Monad
-import Control.Monad.Random
+--import Control.Monad.Random
 import Control.Applicative ((<$>))
+import Control.Monad.State hiding (state)
 
 import Convertible
 import NewGame
 import Utils (fromVector)
 import Runner
+import Utils (whileM)
+import Discrete
 
 type Datum = Vector Double
 type Data = Samples Double
@@ -43,7 +52,8 @@ data NNConfig s = NNConfig
   , outputDatum :: s -> Datum
   , interpret :: Datum -> Agent s -> Double
   , depth :: Int
-  , callback :: s -> IO ()
+  , batch :: Int
+  , queue :: Int
   }
 
 initNN :: NNConfig s -> IO (Network Double)
@@ -61,6 +71,10 @@ scoreNN Network {cost, net} = uncurry (getCostFunction cost $ net) . prepare
 
 getHeuristic NNConfig {activation, inputDatum, interpret} network game =
   interpret $ output network activation $ inputDatum $ state game
+
+getPlayer :: Monad m => NNConfig s -> Network Double -> Player s m
+getPlayer config @ NNConfig {depth} network =
+  lookAheadPlayDepth depth $ getHeuristic config network
 
 tdLearn :: NNConfig s -> IORef (Network Double) -> GameState s -> IO s
 
@@ -98,6 +112,9 @@ tdLearn config modelRef = go where
     model <- readIORef modelRef
     return $ output model (activation config) input
 
+getDataset
+  :: (Fractional w, Ord (Action s), Discrete.MonadDiscrete w m) =>
+     NNConfig s -> GameState s -> Player s m -> m [(Datum, Datum)]
 getDataset config initial player = do
   (game, final) <- playOutM' player initial
   
@@ -107,15 +124,38 @@ getDataset config initial player = do
   
   return dataset
 
-batchLearn :: (Ord (Action s)) => NNConfig s -> IORef (Network Double) -> Int -> GameState s -> IO s
+batchLearn
+  :: (Ord (Action s), Monad m) =>
+     NNConfig s -> IORef (Network Double) -> GameState s -> IO (Player s m)
 
-batchLearn config modelRef batch initial = do
-  heuristic <- getHeuristic config <$> (readIORef modelRef)
-  let player = lookAheadPlayDepth (depth config) heuristic
+batchLearn config @ NNConfig {batch} modelRef initial = do
+  player <- getPlayer config <$> readIORef modelRef
   
   datasets <- replicateM batch $ getDataset config initial player
   
   modifyIORef modelRef $ trainNN config (concat datasets) 1
   
-  state . snd <$> playOutM' player initial
+  getPlayer config <$> readIORef modelRef
+
+instance MonadDiscrete Rational (StateT s IO) where
+  sample = liftIO . sample
+  uniform = liftIO . uniform
+
+queueLearn :: (Ord (Action s), Monad m, Foldable q, Dequeue q) => NNConfig s -> IORef (Network Double) -> GameState s -> StateT (q (Datum, Datum)) IO (Player s m)
+queueLearn config @ NNConfig {queue} modelRef initial = do
+  let getPlayer' = liftIO $ getPlayer config <$> readIORef modelRef
+  player <- getPlayer'
+  dataset <- getDataset config initial player
+  
+  liftIO $ print $ length dataset
+  
+  for_ dataset (\d -> modify $ (\q -> pushBack q d))
+  
+  whileM (liftM (queue <) $ Dequeue.length <$> get) $ modify (snd . popFront)
+  
+  q <- get
+  
+  liftIO $ modifyIORef modelRef $ trainNN config (Foldable.toList q) 1
+  
+  getPlayer'
 

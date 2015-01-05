@@ -20,6 +20,9 @@ import qualified Numeric
 
 import Data.Bits
 
+import Control.Applicative
+import Control.Monad
+
 decimals n f = Numeric.showFFloat (Just n) f ""
 
 inRange :: Ord a => (a, a) -> a -> Bool
@@ -74,4 +77,7 @@ invert packed =
   let unpacked = concat [[(a, b) | b <- bs] | (a, bs) <- packed]
       bToAs = foldl (\m (a, b) -> Map.insert b (a : Map.findWithDefault [] b m) m) Map.empty unpacked
     in Map.assocs bToAs
+
+whileM :: (Monad m) => m Bool -> m () -> m ()
+whileM pred loop = (flip when) (loop >> whileM pred loop) =<< pred
 

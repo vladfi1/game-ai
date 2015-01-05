@@ -15,11 +15,14 @@ import Control.Concurrent
 import Threes
 import NewGame
 import ThreesGui
-
+import Runner
 
 makePlayer player game @ PlayerState {} = player game
 main = do
-  guiHumanPlayer <-  makeGuiHumanPlayer
+  guiHumanPlayer <- makeGuiHumanPlayer
   
-  setStdGen $ mkStdGen 0
-  runEffect $  playOutM  (makePlayer guiHumanPlayer) newGame >-> P.drain
+  --setStdGen $ mkStdGen 0
+  
+  recordGame "saved/threes-human/" (return newGame) (makePlayer guiHumanPlayer)
+  
+  --runEffect $  playOutM  (makePlayer guiHumanPlayer) newGame >-> P.drain
