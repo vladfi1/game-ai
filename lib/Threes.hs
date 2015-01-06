@@ -20,7 +20,7 @@ import qualified Data.Vector.Generic as Vector
 import Data.Vector (Vector)
 import qualified Data.Packed.Vector as HVector
 
-import Data.Matrix hiding ((!))
+import Data.Matrix hiding ((!), toList)
 import qualified Data.Matrix as Matrix
 
 import Data.Monoid
@@ -114,7 +114,7 @@ getRows :: Matrix a -> [Vector a]
 getRows matrix = [getRow i matrix | i <- [1 .. nrows matrix]]
 
 fromRows :: [Vector a] -> Matrix a
-fromRows = Matrix.fromLists . (map Vector.toList)
+fromRows = Matrix.fromLists . (map toList)
 --fromRows rows = foldr1 (<->) (map rowVector rows)
 
 transposes Down = True
@@ -329,6 +329,21 @@ threesToUnary = (>>= tileToUnary) . Matrix.toList . grid
 scoreThreesUnary :: ThreesState -> [Bool]
 scoreThreesUnary = (toUnary gridScoreUnary) . (`quot` 27)  . scoreGrid . grid
 
+-- categorical representation
+tileSizeCategorical = tileSizeUnary
+
+toCategorical :: Int -> Int -> [Bool]
+toCategorical size n = (replicate n False) ++ [True] ++ (replicate (width - 1 - n) False)
+
+fromCategorical :: [Bool] -> Int
+fromCategorical (True:_) = 0
+fromCategorical (False:bs) = 1 + fromCategorical bs
+
+tileToCategorical :: Tile -> [Bool]
+tileToCategorical = (toCategorical tileSizeCategorical) . classifyTile
+
+threesToCategorical :: ThreesState -> [Bool]
+threesToCategorical = (>>= tileToUnary) . Matrix.toList . grid
 
 -- continuous representation
 scoreThreesContinuous :: ThreesState -> Double

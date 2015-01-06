@@ -46,25 +46,27 @@ saveDir = "saved/threes/"
 
 unaryInput = (threesToUnary, tileSizeUnary)
 binaryInput = (threesToBinary, tileSizeBinary)
+categoricalInput = (threesToCategorical, tileSizeCategorical)
 
-(featureFunction, tileSizeInput) = unaryInput
+--(featureFunction, tileSizeInput) = unaryInput
 --(featureFunction, tileSizeInput) = binaryInput
+(featureFunction, tileSizeInput) = categoricalInput
 
 unaryOutput = (scoreThreesUnary, gridScoreUnary)
 binaryOutput = (scoreThreesBinary, gridScoreBinary)
 continuousOutput = (scoreThreesContinuous, 1)
 
-(scoreFunction, outputLayer) = unaryOutput
+--(scoreFunction, outputLayer) = unaryOutput
 --(scoreFunction, outputLayer) = binaryOutput
---(scoreFunction, outputLayer) = continuousOutput
+(scoreFunction, outputLayer) = continuousOutput
 
 nnConfig = NNConfig
   { inputs = gridSize * tileSizeInput
   , outputs = outputLayer
-  , activation = sigmoid
-  , activation' = sigmoid'
+  , activation = tanh
+  , activation' = tanh'
   , layers = [32]
-  , learningRate = 0.01
+  , learningRate = 0.0001
   , inputDatum = convert . featureFunction
   , outputDatum = convert . scoreFunction
   , interpret = const . sum . Packed.toList
